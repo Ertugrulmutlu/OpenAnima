@@ -1,7 +1,7 @@
 # OpenAnima
 
 <p align="center">
-  <img src="icon.ico" width="120" alt="OpenAnima Icon" />
+  <img src="icon.png" width="120" alt="OpenAnima Icon" />
 </p>
 
 ## 🧠 What is OpenAnima?
