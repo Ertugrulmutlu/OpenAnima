@@ -111,7 +111,7 @@ assets/
 
 Get the latest Windows build from:
 
-👉 [https://github.com/YOUR_USERNAME/openanima/releases](https://github.com/YOUR_USERNAME/openanima/releases)
+👉 [https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.1.0](https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.1.0)
 
 ---
 
