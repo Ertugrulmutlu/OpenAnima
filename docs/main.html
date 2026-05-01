@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenAnima — Desktop Overlay Engine</title>
+  <meta name="description" content="OpenAnima is an open-source desktop overlay engine for GIFs, sprites, HUD elements, and animated assets on Windows." />
+  <link rel="icon" href="icon.ico" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg: #080812;
+      --panel: #1b1b1b;
+      --panel-2: #242424;
+      --panel-3: #2b2b2b;
+      --text: #fffefd;
+      --muted: #c9c3d8;
+      --muted-2: #918b9e;
+      --line: rgba(255, 255, 255, 0.14);
+      --orange: #fea142;
+      --pink: #ec598d;
+      --purple: #a26fb9;
+      --blue: #3d82f6;
+      --blue-2: #58a7e3;
+      --cream: #f4cbb0;
+      --shadow: 0 32px 90px rgba(0, 0, 0, 0.42);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 12%, rgba(88,167,227,.34), transparent 26%),
+        radial-gradient(circle at 86% 8%, rgba(236,89,141,.30), transparent 24%),
+        radial-gradient(circle at 75% 74%, rgba(254,161,66,.22), transparent 29%),
+        linear-gradient(180deg, #080812 0%, #0b0b16 48%, #070711 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: linear-gradient(to bottom, black, rgba(0,0,0,.8), transparent 88%);
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      opacity: .075;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .cursor-glow {
+      position: fixed;
+      z-index: -1;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(88,167,227,.16), transparent 68%);
+    }
+
+    .shell { width: min(1180px, calc(100% - 36px)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky;
+      top: 14px;
+      z-index: 50;
+      margin-top: 14px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(8,8,18,.70);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 12px 42px rgba(0,0,0,.26);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 850;
+      letter-spacing: -.035em;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 0 28px rgba(236,89,141,.36);
+      overflow: hidden;
+    }
+
+    .brand-icon img { width: 30px; height: 30px; object-fit: contain; display: block; }
+
+    .nav-links { display: flex; align-items: center; gap: 18px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color .2s ease; }
+    .nav-links a:hover { color: var(--text); }
+
+    .btn {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 750;
+      background: rgba(255,255,255,.075);
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      cursor: pointer;
+    }
+
+    .btn:hover { transform: translateY(-2px); background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.28); }
+    .btn.primary { border: 0; color: #080812; background: linear-gradient(135deg, var(--orange), var(--pink), var(--blue-2)); box-shadow: 0 16px 52px rgba(236,89,141,.35); }
+    .btn.primary:hover { box-shadow: 0 20px 66px rgba(236,89,141,.48); }
+    .btn.small { min-height: 38px; padding: 0 14px; font-size: 14px; }
+
+    .hero {
+      min-height: 88vh;
+      display: grid;
+      grid-template-columns: .95fr 1.05fr;
+      gap: 56px;
+      align-items: center;
+      padding: 86px 0 72px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 999px;
+      background: rgba(255,255,255,.065);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .pulse-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--orange); animation: pulse 1.8s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(254,161,66,.75); } 70% { box-shadow: 0 0 0 12px rgba(254,161,66,0); } 100% { box-shadow: 0 0 0 0 rgba(254,161,66,0); } }
+
+    h1 { max-width: 780px; font-size: clamp(52px, 7.6vw, 94px); line-height: .94; letter-spacing: -.088em; }
+    .gradient-text { color: transparent; background: linear-gradient(110deg, var(--text), var(--cream), var(--orange), var(--pink), var(--blue-2)); -webkit-background-clip: text; background-clip: text; }
+    .lead { max-width: 680px; margin-top: 24px; color: var(--muted); font-size: clamp(18px, 2vw, 22px); line-height: 1.62; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 34px; }
+
+    .quick-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 650px; margin-top: 42px; }
+    .quick-stat { padding: 16px; border: 1px solid var(--line); border-radius: 22px; background: rgba(255,255,255,.065); }
+    .quick-stat strong { display: block; margin-bottom: 4px; font-size: 22px; letter-spacing: -.035em; }
+    .quick-stat span { color: var(--muted); font-size: 13px; }
+
+    .hero-visual {
+      position: relative;
+      min-height: 720px;
+      perspective: 1800px;
+      transform-style: preserve-3d;
+      isolation: isolate;
+    }
+
+    .orb {
+      position: absolute;
+      z-index: 0;
+      border-radius: 50%;
+      filter: blur(18px);
+      opacity: .42;
+      animation: drift 9s ease-in-out infinite alternate;
+      pointer-events: none;
+      transform: translateZ(-160px);
+    }
+    .orb.a { width: 150px; height: 150px; left: 1%; top: 5%; background: var(--pink); }
+    .orb.b { width: 130px; height: 130px; right: 2%; bottom: 8%; background: var(--blue-2); animation-delay: -2.5s; }
+    .orb.c { width: 100px; height: 100px; left: 54%; top: -2%; background: var(--orange); animation-delay: -5s; }
+    @keyframes drift {
+      from { translate: 0 0; scale: 1; }
+      to { translate: 26px -20px; scale: 1.08; }
+    }
+
+    .app-mockup {
+      position: absolute;
+      z-index: 2;
+      inset: 35px 0 auto auto;
+      width: min(650px, 100%);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 30px;
+      background: #181818;
+      box-shadow: var(--shadow), 0 0 80px rgba(88,167,227,.10);
+      transform: rotateY(-9deg) rotateX(4deg) translateZ(0);
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition: transform .14s ease-out;
+    }
+
+    .app-titlebar {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      background: #1b1b1b;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+
+    .app-title { display: flex; align-items: center; gap: 9px; color: #f5f5f5; font-size: 13px; }
+    .app-title img { width: 18px; height: 18px; object-fit: contain; border-radius: 4px; background: white; }
+    .win-controls { display: flex; align-items: center; gap: 18px; color: #aaa; font-size: 13px; letter-spacing: .08em; }
+
+    .app-tabs { display: flex; gap: 5px; padding: 22px 18px 0; background: #1d1d1d; }
+    .app-tab { min-width: 98px; padding: 14px 24px; border-radius: 10px 10px 0 0; background: #242424; color: #f7f7f7; font-size: 14px; text-align: center; }
+    .app-tab.active { background: var(--blue); box-shadow: 0 -8px 24px rgba(61,130,246,.20) inset; }
+
+    .app-content { position: relative; min-height: 392px; padding: 26px; background: #1b1b1b; border-top: 1px solid #343434; }
+    .app-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .app-copy h3 { margin-bottom: 14px; font-size: 23px; letter-spacing: -.035em; }
+    .app-copy p { color: #ececec; line-height: 1.55; font-size: 15px; }
+    .app-copy .path { margin-top: 18px; color: #d7d7d7; font-size: 14px; }
+
+    .select-box, .app-button { border: 1px solid #555; border-radius: 9px; background: #272727; color: white; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
+    .select-box { min-width: 160px; padding: 14px 16px; font-size: 14px; }
+    .app-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; font-size: 14px; white-space: nowrap; }
+
+    .asset-list { height: 168px; margin-top: 22px; padding: 20px; border: 1px solid #343434; border-radius: 10px; background: #242424; color: #f1f1f1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .asset-tile { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid #363636; border-radius: 12px; background: #1d1d1d; overflow: hidden; }
+    .asset-tile::after { content: ""; position: absolute; inset: auto 0 0 0; height: 2px; background: linear-gradient(90deg, var(--orange), var(--pink), var(--blue-2)); opacity: .9; }
+    .asset-preview { width: 36px; height: 36px; border-radius: 10px; background: radial-gradient(circle at top left, rgba(255,255,255,.15), transparent 50%), linear-gradient(135deg, rgba(254,161,66,.9), rgba(236,89,141,.75), rgba(88,167,227,.8)); display: grid; place-items: center; box-shadow: 0 0 24px rgba(236,89,141,.22); }
+    .asset-preview svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .asset-name { font-size: 13px; color: #e8e8e8; }
+    .app-footer-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 14px; }
+
+    .stacked-editor {
+      position: absolute;
+      z-index: 3;
+      right: -8px;
+      bottom: -92px;
+      width: min(470px, calc(100% - 36px));
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 24px;
+      background: #181818;
+      box-shadow: 0 36px 90px rgba(0,0,0,.5), 0 0 60px rgba(236,89,141,.10);
+      transform: rotateY(15deg) rotateX(2deg) translateZ(70px);
+      transform-origin: right center;
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition: transform .14s ease-out;
+    }
+
+    .editor-inner { padding: 20px; }
+    .selected-box, .transform-box { border: 1px solid #333; border-radius: 10px; background: #1f1f1f; }
+    .selected-box { padding: 16px; margin-bottom: 14px; }
+    .selected-box small { display: block; color: #f1f1f1; line-height: 1.7; }
+    .field-title { margin-bottom: 8px; color: #fff; font-size: 13px; }
+    .transform-box { padding: 16px; }
+    .range-row { margin-bottom: 13px; color: #fff; font-size: 13px; }
+    .range-track { position: relative; height: 7px; margin-top: 9px; border-radius: 999px; background: #3d3d3d; overflow: hidden; }
+    .range-track span { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+    .mini-checks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .mini-check { display: inline-flex; align-items: center; gap: 8px; color: #f4f4f4; font-size: 12px; }
+    .check-square { width: 18px; height: 18px; border: 1px solid #555; border-radius: 5px; background: #2b2b2b; }
+    .check-square.on { border-color: var(--blue); background: var(--blue); }
+
+    section { padding: 88px 0; }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; margin-bottom: 32px; }
+    .section-head h2 { max-width: 680px; font-size: clamp(36px, 4vw, 58px); line-height: 1; letter-spacing: -.06em; }
+    .section-head p { max-width: 520px; color: var(--muted); line-height: 1.72; font-size: 16px; }
+
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .card { position: relative; min-height: 250px; overflow: hidden; padding: 26px; border: 1px solid var(--line); border-radius: 30px; background: rgba(255,255,255,.075); box-shadow: 0 20px 70px rgba(0,0,0,.18); opacity: 0; transform: translateY(26px); transition: transform .7s ease, opacity .7s ease, background .2s ease, border-color .2s ease; }
+    .card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at top left, rgba(254,161,66,.12), transparent 42%); opacity: 0; transition: opacity .2s ease; }
+    .card:hover { background: rgba(255,255,255,.105); border-color: rgba(255,255,255,.28); }
+    .card:hover::before { opacity: 1; }
+    .card.visible { opacity: 1; transform: translateY(0); }
+    .card > * { position: relative; }
+    .icon-pill { width: 56px; height: 56px; display: grid; place-items: center; margin-bottom: 24px; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; background: radial-gradient(circle at top left, rgba(255,255,255,.10), transparent 50%), linear-gradient(135deg, rgba(254,161,66,.20), rgba(236,89,141,.20), rgba(88,167,227,.20)); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 12px 30px rgba(0,0,0,.18); }
+    .icon-pill svg { width: 25px; height: 25px; stroke: #fff; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .card h3 { margin-bottom: 12px; font-size: 23px; letter-spacing: -.04em; }
+    .card p { color: var(--muted); line-height: 1.68; }
+
+    .demo-wrap { display: grid; grid-template-columns: 1.12fr .88fr; gap: 22px; align-items: stretch; }
+    .video-card {
+      position: relative;
+      min-height: 430px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      background: rgba(255,255,255,.075);
+      box-shadow: var(--shadow);
+    }
+
+    .youtube-card {
+      position: relative;
+      display: block;
+      width: 100%;
+      min-height: 430px;
+      color: var(--text);
+      text-decoration: none;
+      background:
+        linear-gradient(90deg, rgba(8,8,18,.24), rgba(8,8,18,.80)),
+        url("https://img.youtube.com/vi/qgJBF40b_L8/maxresdefault.jpg") center / cover;
+    }
+
+    .youtube-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(254,161,66,.10), transparent 52%);
+      pointer-events: none;
+    }
+
+    .youtube-content {
+      position: absolute;
+      inset: auto 32px 32px 32px;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .youtube-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      color: var(--cream);
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: .02em;
+    }
+
+    .youtube-content h3 {
+      max-width: 560px;
+      font-size: clamp(28px, 3vw, 44px);
+      line-height: 1.02;
+      letter-spacing: -.055em;
+    }
+
+    .play-button {
+      width: 78px;
+      height: 78px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--orange), var(--pink), var(--blue-2));
+      color: #080812;
+      box-shadow: 0 18px 55px rgba(236,89,141,.44);
+      transition: transform .2s ease;
+    }
+
+    .youtube-card:hover .play-button { transform: scale(1.06); }
+    .play-button svg { width: 34px; height: 34px; fill: currentColor; stroke: currentColor; }
+
+    .callout { display: flex; flex-direction: column; justify-content: space-between; padding: 32px; border: 1px solid var(--line); border-radius: 34px; background: radial-gradient(circle at top right, rgba(254,161,66,.22), transparent 34%), rgba(255,255,255,.075); }
+    .callout h3 { margin-bottom: 18px; font-size: 36px; line-height: 1.04; letter-spacing: -.058em; }
+    .callout p { color: var(--muted); line-height: 1.76; }
+    .terminal { margin-top: 28px; padding: 18px; border: 1px solid rgba(255,255,255,.12); border-radius: 22px; background: rgba(0,0,0,.36); color: #e8e2f5; font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; line-height: 1.8; }
+    .terminal span { color: var(--orange); }
+
+    .interface-showcase { position: relative; display: grid; grid-template-columns: 1fr .72fr; gap: 22px; align-items: start; }
+    .large-panel, .side-panel { overflow: hidden; border: 1px solid rgba(255,255,255,.15); border-radius: 28px; background: rgba(27,27,27,.92); box-shadow: var(--shadow); }
+    .large-panel .app-content { min-height: 430px; }
+    .library-layout { display: grid; grid-template-columns: 1fr 260px; gap: 22px; }
+    .empty-box { min-height: 220px; padding: 26px; border: 1px solid #343434; border-radius: 10px; background: #242424; color: #f5f5f5; }
+    .panel-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .side-panel { padding-bottom: 18px; }
+    .side-panel .editor-inner { padding: 22px; }
+    .usecase-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .usecase-card {
+      position: relative;
+      min-height: 300px;
+      overflow: hidden;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at top left, rgba(254,161,66,.10), transparent 38%),
+        rgba(255,255,255,.075);
+      box-shadow: 0 20px 70px rgba(0,0,0,.18);
+      opacity: 0;
+      transform: translateY(26px);
+      transition: transform .7s ease, opacity .7s ease, background .2s ease, border-color .2s ease;
+    }
+
+    .usecase-card:hover {
+      background:
+        radial-gradient(circle at top left, rgba(236,89,141,.13), transparent 42%),
+        rgba(255,255,255,.105);
+      border-color: rgba(255,255,255,.28);
+    }
+
+    .usecase-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .usecase-icon {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.12), transparent 50%),
+        linear-gradient(135deg, rgba(254,161,66,.28), rgba(236,89,141,.22), rgba(88,167,227,.22));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 12px 30px rgba(0,0,0,.18);
+    }
+
+    .usecase-icon svg {
+      width: 27px;
+      height: 27px;
+      stroke: #fff;
+      stroke-width: 2.2;
+    }
+
+    .usecase-card h3 {
+      margin-bottom: 12px;
+      font-size: 24px;
+      letter-spacing: -.045em;
+    }
+
+    .usecase-card p {
+      color: var(--muted);
+      line-height: 1.68;
+      margin-bottom: 24px;
+      max-width: 560px;
+    }
+
+    .example-tag {
+      position: static;
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      max-width: 100%;
+      margin-top: auto;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.24);
+      color: var(--cream);
+      font-size: 13px;
+      line-height: 1.25;
+      font-weight: 750;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .roadmap-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 30px;
+      margin-bottom: 32px;
+    }
+
+    .roadmap-head h2 {
+      max-width: 680px;
+      font-size: clamp(36px, 4vw, 58px);
+      line-height: 1;
+      letter-spacing: -.06em;
+    }
+
+    .roadmap-head p {
+      max-width: 520px;
+      color: var(--muted);
+      line-height: 1.72;
+      font-size: 16px;
+    }
+
+    .roadmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .step { position: relative; overflow: hidden; min-height: 225px; padding: 24px; border: 1px solid var(--line); border-radius: 28px; background: rgba(255,255,255,.07); }
+    .step::before { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity .2s ease; background: linear-gradient(135deg, rgba(254,161,66,.15), rgba(236,89,141,.09), rgba(88,167,227,.12)); }
+    .step:hover::before { opacity: 1; }
+    .step > * { position: relative; }
+    .tag { display: inline-flex; margin-bottom: 16px; padding: 7px 10px; border-radius: 999px; color: var(--cream); background: rgba(255,255,255,.10); font-size: 12px; font-weight: 800; }
+    .step h3 { margin-bottom: 8px; font-size: 22px; letter-spacing: -.035em; }
+    .step p { color: var(--muted); line-height: 1.62; font-size: 14px; }
+
+    .suggest-card {
+      margin-top: 18px;
+      padding: 28px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 30px;
+      background: radial-gradient(circle at top right, rgba(88,167,227,.14), transparent 36%), rgba(255,255,255,.065);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+    }
+
+    .suggest-card h3 {
+      margin-bottom: 8px;
+      font-size: 24px;
+      letter-spacing: -.04em;
+    }
+
+    .suggest-card p {
+      max-width: 760px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .download { display: grid; grid-template-columns: 1fr auto; gap: 22px; align-items: center; padding: 46px; border: 1px solid rgba(255,255,255,.2); border-radius: 40px; background: linear-gradient(135deg, rgba(254,161,66,.19), rgba(236,89,141,.15), rgba(88,167,227,.16)), rgba(255,255,255,.075); box-shadow: var(--shadow); }
+    .download h2 { margin-bottom: 14px; font-size: clamp(36px, 4vw, 60px); line-height: 1; letter-spacing: -.065em; }
+    .download p { max-width: 740px; color: var(--muted); line-height: 1.72; }
+
+    .download-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .download-actions svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    .github-mark {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    footer { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding: 34px 0 50px; border-top: 1px solid var(--line); color: var(--muted); }
+
+    @media (max-width: 1080px) {
+      .shell {
+        width: min(100% - 28px, 1180px);
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 48px;
+        min-height: auto;
+        padding: 72px 0 56px;
+      }
+
+      .hero-visual {
+        min-height: auto;
+        perspective: none;
+      }
+
+      .app-mockup {
+        position: relative;
+        inset: auto;
+        width: 100%;
+        margin: 0 auto;
+        transform: none !important;
+      }
+
+      .stacked-editor {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        width: min(560px, 94%);
+        margin: -34px auto 0;
+        transform: none !important;
+      }
+
+      .orb.a { left: 4%; top: 2%; }
+      .orb.b { right: 4%; bottom: 12%; }
+      .orb.c { left: 56%; top: -3%; }
+
+      .demo-wrap,
+      .download {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head,
+      .roadmap-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .feature-grid,
+      .roadmap,
+      .quick-stats,
+      .usecase-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .suggest-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .download-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 760px) {
+      section {
+        padding: 66px 0;
+      }
+
+      .topbar {
+        top: 10px;
+        margin-top: 10px;
+        border-radius: 24px;
+      }
+
+      .nav-links {
+        gap: 10px;
+      }
+
+      .nav-links a:not(.btn) {
+        display: none;
+      }
+
+      .brand span:not(.brand-icon) {
+        display: none;
+      }
+
+      h1 {
+        font-size: clamp(48px, 15vw, 74px);
+        letter-spacing: -.075em;
+      }
+
+      .lead {
+        font-size: 18px;
+      }
+
+      .hero-actions,
+      .download-actions {
+        width: 100%;
+      }
+
+      .hero-actions .btn,
+      .download-actions .btn {
+        flex: 1 1 100%;
+        width: 100%;
+      }
+
+      .quick-stats {
+        gap: 10px;
+      }
+
+      .app-mockup,
+      .stacked-editor,
+      .video-card,
+      .callout,
+      .download,
+      .suggest-card,
+      .card,
+      .usecase-card,
+      .step {
+        border-radius: 24px;
+      }
+
+      .app-titlebar {
+        height: 40px;
+      }
+
+      .app-title {
+        font-size: 12px;
+        min-width: 0;
+      }
+
+      .app-title img {
+        width: 17px;
+        height: 17px;
+      }
+
+      .win-controls {
+        gap: 12px;
+        font-size: 12px;
+      }
+
+      .app-tabs {
+        padding: 16px 14px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .app-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .app-tab {
+        min-width: 92px;
+        padding: 12px 18px;
+        flex: 0 0 auto;
+      }
+
+      .app-content,
+      .editor-inner {
+        padding: 20px;
+      }
+
+      .app-row,
+      .app-footer-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .select-box,
+      .app-button {
+        width: 100%;
+      }
+
+      .asset-list {
+        grid-template-columns: 1fr;
+        height: auto;
+        padding: 14px;
+      }
+
+      .asset-tile {
+        min-height: 72px;
+      }
+
+      .stacked-editor {
+        width: 100%;
+        margin-top: 18px;
+      }
+
+      .mini-checks {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .section-head h2,
+      .roadmap-head h2 {
+        font-size: clamp(34px, 11vw, 52px);
+      }
+
+      .section-head p,
+      .roadmap-head p {
+        font-size: 15px;
+      }
+
+      .youtube-card,
+      .video-card {
+        min-height: 360px;
+      }
+
+      .youtube-content {
+        inset: auto 22px 24px 22px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .youtube-content h3 {
+        font-size: clamp(28px, 9vw, 40px);
+      }
+
+      .play-button {
+        width: 64px;
+        height: 64px;
+      }
+
+      .callout h3 {
+        font-size: clamp(30px, 10vw, 40px);
+      }
+
+      .download {
+        padding: 30px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .shell {
+        width: min(100% - 20px, 1180px);
+      }
+
+      .topbar {
+        padding: 8px 10px;
+      }
+
+      .brand-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+      }
+
+      .brand-icon img {
+        width: 27px;
+        height: 27px;
+      }
+
+      .btn.small {
+        min-height: 36px;
+        padding: 0 12px;
+        font-size: 13px;
+      }
+
+      .hero {
+        padding-top: 52px;
+      }
+
+      h1 {
+        font-size: clamp(44px, 16vw, 62px);
+      }
+
+      .eyebrow {
+        font-size: 13px;
+        max-width: 100%;
+      }
+
+      .app-content,
+      .editor-inner,
+      .card,
+      .usecase-card,
+      .step,
+      .callout,
+      .download,
+      .suggest-card {
+        padding: 18px;
+      }
+
+      .app-copy h3 {
+        font-size: 21px;
+      }
+
+      .app-copy p,
+      .app-copy .path {
+        font-size: 14px;
+      }
+
+      .range-row,
+      .selected-box small,
+      .field-title {
+        font-size: 13px;
+      }
+
+      .youtube-card,
+      .video-card {
+        min-height: 320px;
+      }
+
+      .download h2 {
+        font-size: clamp(34px, 12vw, 48px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="noise"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <div class="shell">
+    <nav class="topbar">
+      <a class="brand" href="#top" aria-label="OpenAnima home">
+        <span class="brand-icon"><img src="icon.ico" alt="OpenAnima logo" /></span>
+        <span>OpenAnima</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#use-cases">Use cases</a>
+        <a href="#roadmap">Roadmap</a>
+        <a class="btn small" href="https://github.com/Ertugrulmutlu/OpenAnima" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </nav>
+
+    <main id="top">
+      <section class="hero">
+        <div>
+          <div class="eyebrow"><span class="pulse-dot"></span> Open-source desktop asset overlay engine</div>
+          <h1>Turn your desktop into a <span class="gradient-text">living canvas.</span></h1>
+          <p class="lead">OpenAnima lets you place GIFs, sprites, frame animations, HUD elements, and playful game-style assets directly on your Windows desktop as movable, customizable overlays.</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#demo">Watch Demo</a>
+            <a class="btn" href="#try-openanima">Get OpenAnima</a>
+          </div>
+          <div class="quick-stats">
+            <div class="quick-stat"><strong>GIFs</strong><span>animated desktop assets</span></div>
+            <div class="quick-stat"><strong>Editor</strong><span>scale, opacity, speed</span></div>
+            <div class="quick-stat"><strong>Windows</strong><span>desktop overlay engine</span></div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="orb a"></div>
+          <div class="orb b"></div>
+          <div class="orb c"></div>
+
+          <div class="app-mockup">
+            <div class="app-titlebar">
+              <div class="app-title"><img src="icon.ico" alt="" /> OpenAnima Control Panel</div>
+              <div class="win-controls"><span>—</span><span>□</span><span>×</span></div>
+            </div>
+            <div class="app-tabs">
+              <div class="app-tab active">Library</div>
+              <div class="app-tab">Active</div>
+              <div class="app-tab">Editor</div>
+            </div>
+            <div class="app-content">
+              <div class="app-row">
+                <div class="app-copy">
+                  <h3>Library</h3>
+                  <p>Choose an asset pack and add visual assets to the desktop.</p>
+                  <p class="path">Assets: ./openanima/assets</p>
+                </div>
+                <div class="app-row" style="gap:12px;align-items:center">
+                  <span style="color:#fff;font-size:14px">Pack</span>
+                  <div class="select-box">Root assets</div>
+                </div>
+              </div>
+
+              <div class="asset-list">
+                <div class="asset-tile"><span class="asset-preview"><i data-lucide="film"></i></span><span class="asset-name">demo.gif</span></div>
+                <div class="asset-tile"><span class="asset-preview"><i data-lucide="ghost"></i></span><span class="asset-name">ghost.sprite</span></div>
+                <div class="asset-tile"><span class="asset-preview"><i data-lucide="rocket"></i></span><span class="asset-name">hud.overlay</span></div>
+              </div>
+
+              <div class="app-footer-actions">
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                  <div class="app-button">Import Asset</div>
+                  <div class="app-button">Import Folder</div>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                  <div class="app-button">Configure Asset</div>
+                  <div class="app-button">Add to Desktop</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stacked-editor">
+            <div class="app-titlebar">
+              <div class="app-title"><img src="icon.ico" alt="" /> Editor</div>
+              <div class="win-controls"><span>—</span><span>□</span><span>×</span></div>
+            </div>
+            <div class="editor-inner">
+              <div class="field-title">Selected Asset</div>
+              <div class="selected-box"><small>demo</small><small>Type: gif</small></div>
+              <div class="field-title">Transform</div>
+              <div class="transform-box">
+                <div class="range-row">Scale: 50%<div class="range-track"><span style="width:5%"></span></div></div>
+                <div class="range-row">Opacity: 100%<div class="range-track"><span style="width:100%"></span></div></div>
+                <div class="range-row">Speed: 100%<div class="range-track"><span style="width:50%"></span></div></div>
+                <div class="mini-checks">
+                  <span class="mini-check"><span class="check-square on"></span>Always on top</span>
+                  <span class="mini-check"><span class="check-square"></span>Click-through</span>
+                  <span class="mini-check"><span class="check-square"></span>Locked</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features">
+        <div class="section-head">
+          <h2>Built for playful desktop experiments.</h2>
+          <p>OpenAnima keeps the idea simple: drop animated assets onto your desktop, tune how they behave, and turn static workspace space into something more alive.</p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="film"></i></div><h3>Animated assets</h3><p>Use GIFs, sprites, frame animations, HUD elements, and small game-style visual assets as desktop overlays.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="move"></i></div><h3>Movable overlays</h3><p>Drag assets around, lock them in place, and create a custom desktop layout without touching your wallpaper.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="sliders-horizontal"></i></div><h3>Inline editing</h3><p>Adjust scale, opacity, speed, and behavior from a lightweight editor designed for quick experiments.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="mouse-pointer-click"></i></div><h3>Click-through mode</h3><p>Keep visual assets visible while letting your normal desktop interactions pass through the overlay window.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="puzzle"></i></div><h3>Open source core</h3><p>Small, hackable, and designed to grow through practical features instead of becoming a bloated desktop suite.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="rocket"></i></div><h3>Ready to evolve</h3><p>Future versions can support asset packs, 3D objects, Linux experiments, and a polished distribution flow.</p></article>
+        </div>
+      </section>
+
+      <section id="demo">
+        <div class="section-head">
+          <h2>See it in action.</h2>
+          <p>A quick demo is the fastest way to understand the vibe: animated assets living directly on the desktop.</p>
+        </div>
+        <div class="demo-wrap">
+          <div class="video-card">
+            <a class="youtube-card" href="https://www.youtube.com/watch?v=qgJBF40b_L8" target="_blank" rel="noreferrer" aria-label="Watch OpenAnima demo on YouTube">
+              <div class="youtube-content">
+                <div>
+                  <div class="youtube-kicker"><i data-lucide="youtube"></i> Demo video</div>
+                  <h3>Watch the OpenAnima demo on YouTube</h3>
+                </div>
+                <span class="play-button"><i data-lucide="play"></i></span>
+              </div>
+            </a>
+          </div>
+          <aside class="callout">
+            <div>
+              <h3>Not just a GIF player. A tiny desktop overlay engine.</h3>
+              <p>OpenAnima is meant to become a small creative layer above your desktop: useful for desktop companions, stream visuals, game-like HUD ideas, and animated productivity widgets.</p>
+            </div>
+            <div class="terminal">
+              <div><span>$</span> import asset</div>
+              <div><span>$</span> add to desktop</div>
+              <div><span>$</span> tune scale opacity speed</div>
+              <div><span>$</span> make desktop alive</div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="use-cases">
+        <div class="section-head">
+          <h2>What can you build with OpenAnima?</h2>
+          <p>OpenAnima is not only about putting a GIF on the desktop. It is a small visual layer for playful overlays, desktop toys, creator assets, and weird interface experiments.</p>
+        </div>
+
+        <div class="usecase-grid">
+          <article class="usecase-card reveal">
+            <div class="usecase-icon"><i data-lucide="cat"></i></div>
+            <h3>Desktop companions</h3>
+            <p>Add animated pets, mascots, pixel characters, or small visual toys that live directly on your desktop.</p>
+            <span class="example-tag">Example: ghost, cat, robot, mascot</span>
+          </article>
+
+          <article class="usecase-card reveal">
+            <div class="usecase-icon"><i data-lucide="gamepad-2"></i></div>
+            <h3>Game-style HUDs</h3>
+            <p>Place health bars, counters, status indicators, or ambient UI elements above your normal workspace.</p>
+            <span class="example-tag">Example: HP bar, combo counter, status badge</span>
+          </article>
+
+          <article class="usecase-card reveal">
+            <div class="usecase-icon"><i data-lucide="clapperboard"></i></div>
+            <h3>Creator visuals</h3>
+            <p>Use animated overlays while recording demos, tutorials, project videos, devlogs, or lightweight streams.</p>
+            <span class="example-tag">Example: intro overlay, tutorial marker</span>
+          </article>
+
+          <article class="usecase-card reveal">
+            <div class="usecase-icon"><i data-lucide="timer-reset"></i></div>
+            <h3>Productivity experiments</h3>
+            <p>Prototype small animated widgets like focus timers, break reminders, ambient indicators, or visual notes.</p>
+            <span class="example-tag">Example: focus timer, break reminder</span>
+          </article>
+        </div>
+      </section>
+
+      <section id="roadmap">
+        <div class="roadmap-head">
+          <div>
+            <h2>Roadmap</h2>
+          </div>
+          <p>OpenAnima grows from a small desktop overlay tool into a playful asset engine step by step.</p>
+        </div>
+
+        <div class="roadmap">
+          <div class="step"><span class="tag">v0.1</span><h3>Desktop overlay foundation</h3><p>Basic GIF overlays, draggable desktop objects, always-on-top behavior, and the first working Windows release.</p></div>
+          <div class="step"><span class="tag">v0.2</span><h3>Asset library and editor</h3><p>Asset import flow, folders, Library / Active / Editor tabs, scale, opacity, speed, and click-through controls.</p></div>
+          <div class="step"><span class="tag">v0.3</span><h3>3D and richer assets</h3><p>Experiments with simple 3D desktop objects, reusable asset packs, presets, and a cleaner first-run experience.</p></div>
+        </div>
+
+        <div class="suggest-card">
+          <div>
+            <h3>Have an idea for OpenAnima?</h3>
+            <p>Suggest a feature, asset format, or weird desktop experiment. This opens an email draft, and you can replace the email address later.</p>
+          </div>
+          <a class="btn primary" href="mailto:yourmail@example.com?subject=OpenAnima%20feature%20suggestion&body=Hi%20Ertugrul%2C%0A%0AI%20have%20an%20idea%20for%20OpenAnima%3A%0A%0A">Suggest an idea</a>
+        </div>
+      </section>
+
+      <section id="try-openanima">
+        <div class="download">
+          <div>
+            <h2>Try OpenAnima today.</h2>
+            <p>Download the latest Windows executable from GitHub Releases, test it on Windows, and share feedback or ideas through issues.</p>
+          </div>
+
+          <div class="download-actions">
+            <a class="btn primary" href="https://github.com/Ertugrulmutlu/OpenAnima/releases/download/v0.2.0-preview/OpenAnima.exe" target="_blank" rel="noreferrer">
+              <i data-lucide="download"></i>
+              Download EXE
+            </a>
+            <a class="btn" href="https://github.com/Ertugrulmutlu/OpenAnima" target="_blank" rel="noreferrer">
+              <svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.866-.014-1.7-2.782.604-3.369-1.342-3.369-1.342-.455-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.004.07 1.532 1.031 1.532 1.031.892 1.529 2.341 1.088 2.91.832.091-.646.35-1.087.636-1.337-2.221-.253-4.555-1.111-4.555-4.944 0-1.092.39-1.986 1.03-2.685-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.025A9.564 9.564 0 0 1 12 5.829c.85.004 1.705.115 2.504.337 1.909-1.295 2.747-1.025 2.747-1.025.546 1.378.203 2.397.1 2.65.64.699 1.028 1.593 1.028 2.685 0 3.842-2.337 4.687-4.566 4.936.359.309.678.919.678 1.852 0 1.337-.012 2.415-.012 2.744 0 .268.18.579.688.481C19.138 20.166 22 16.418 22 12c0-5.523-4.477-10-10-10Z" />
+              </svg>
+              GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>© 2026 OpenAnima. Open-source desktop overlay engine.</span>
+      <span>Made for animated assets, desktop toys, and weird little ideas.</span>
+    </footer>
+  </div>
+
+  <script>
+    const glow = document.getElementById("cursorGlow");
+    window.addEventListener("pointermove", function(event) {
+      glow.style.left = event.clientX + "px";
+      glow.style.top = event.clientY + "px";
+    });
+
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) entry.target.classList.add("visible");
+      });
+    }, { threshold: 0.16 });
+
+    document.querySelectorAll(".reveal").forEach(function(element, index) {
+      element.style.transitionDelay = (index * 80) + "ms";
+      observer.observe(element);
+    });
+
+    const mockup = document.querySelector(".app-mockup");
+    const editorCard = document.querySelector(".stacked-editor");
+
+    document.addEventListener("pointermove", function(event) {
+      if (window.innerWidth <= 980) return;
+
+      const rx = (event.clientY / window.innerHeight - 0.5) * 8;
+      const ry = (event.clientX / window.innerWidth - 0.5) * 12;
+
+      if (mockup) {
+        mockup.style.transform = "rotateY(" + (-9 + ry) + "deg) rotateX(" + (4 - rx) + "deg) translateZ(0px)";
+      }
+
+      if (editorCard) {
+        editorCard.style.transform = "rotateY(" + (15 + ry * 0.8) + "deg) rotateX(" + (2 - rx * 0.6) + "deg) translateZ(70px)";
+      }
+    });
+
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+</html>
