@@ -71,6 +71,22 @@ QPushButton:disabled {
     background-color: #252525;
     border-color: #333333;
 }
+QLineEdit, QSpinBox, QDoubleSpinBox {
+    background-color: #252525;
+    border: 1px solid #454545;
+    border-radius: 7px;
+    padding: 6px 9px;
+    color: #ffffff;
+    min-height: 18px;
+}
+QLineEdit:hover, QSpinBox:hover, QDoubleSpinBox:hover {
+    border-color: #3a86ff;
+}
+QSpinBox::up-button, QSpinBox::down-button,
+QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {
+    width: 18px;
+    border: 0;
+}
 QListWidget {
     background-color: #252525;
     border: 1px solid #333333;
@@ -95,6 +111,7 @@ QComboBox {
     border-radius: 7px;
     padding: 7px 10px;
     color: #ffffff;
+    min-height: 18px;
 }
 QComboBox:hover {
     border-color: #3a86ff;

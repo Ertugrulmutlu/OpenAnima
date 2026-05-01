@@ -2,11 +2,26 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QPoint, QSize, Qt
-from PySide6.QtGui import QAction, QImageReader, QMovie, QPainter
+from PySide6.QtGui import QAction, QImageReader, QMovie, QPainter, QPixmap
 from PySide6.QtWidgets import QApplication, QFileDialog, QMenu, QMessageBox, QWidget
 
-from .assets import import_gif_to_assets, save_config, stored_path
+from .assets import (
+    AssetType,
+    detect_asset,
+    frame_paths_for_folder,
+    import_asset_to_assets,
+    save_config,
+    stored_path,
+)
+from .asset_validation import validate_asset_metadata
 from .constants import BASE_DIR
+from .frame_animation_player import FrameAnimationPlayer
+from .metadata_renderers import (
+    CompositeUIRenderer,
+    SpriteAnimationPlayer,
+    load_sprite_strip_frames,
+    load_spritesheet_frames,
+)
 from . import state
 
 
@@ -69,12 +84,22 @@ def confirm_exit_or_tray(parent=None):
     return "cancel"
 
 
-def add_window(gif_path, config=None, save=True):
-    asset_path = import_gif_to_assets(gif_path)
-    if asset_path is None:
+def add_window(asset_path, config=None, save=True):
+    path = Path(asset_path).resolve()
+    asset = detect_asset(path)
+    if asset is None and path.is_file():
+        imported_path = import_asset_to_assets(path)
+        asset = detect_asset(imported_path) if imported_path is not None else None
+
+    if asset is None:
+        print(f"Warning: unsupported or missing asset skipped: {asset_path}")
         return None
 
-    window = OverlayWindow(asset_path, config or {})
+    try:
+        window = OverlayWindow(asset, config or {})
+    except ValueError as exc:
+        print(f"Warning: {exc}")
+        return None
     state.WINDOWS.append(window)
     window.show()
     remove_native_border(window)
@@ -85,11 +110,14 @@ def add_window(gif_path, config=None, save=True):
 
 
 class OverlayWindow(QWidget):
-    def __init__(self, gif_path, config=None):
+    def __init__(self, asset, config=None):
         super().__init__()
         config = config or {}
 
-        self.gif_path = Path(gif_path).resolve()
+        self.asset = asset
+        self.asset_path = Path(asset.path).resolve()
+        self.asset_type = asset.type
+        self.gif_path = self.asset_path
         self.locked = bool(config.get("locked", False))
         self.always_on_top = bool(config.get("always_on_top", True))
         self.click_through = bool(config.get("click_through", False))
@@ -98,6 +126,14 @@ class OverlayWindow(QWidget):
         self.speed = int(config.get("speed", 100))
         self.drag_offset = QPoint()
         self.base_size = QSize()
+        self.movie = None
+        self.static_pixmap = QPixmap()
+        self.current_pixmap = QPixmap()
+        self.frame_player = None
+        self.sprite_player = None
+        self.composite_renderer = None
+        self.layer_values = dict(config.get("layer_values") or {})
+        self.current_animation = config.get("current_animation")
 
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setAttribute(Qt.WA_NoSystemBackground, True)
@@ -105,16 +141,8 @@ class OverlayWindow(QWidget):
         self.setContentsMargins(0, 0, 0, 0)
         self.setStyleSheet("background: transparent; border: 0; margin: 0; padding: 0;")
 
-        self.movie = QMovie(str(self.gif_path))
-        self.movie.setCacheMode(QMovie.CacheAll)
-        self.movie.setSpeed(self.speed)
-
-        size = QImageReader(str(self.gif_path)).size()
-        if not size.isValid():
-            size = self.movie.frameRect().size()
-        if size.isValid():
-            self.base_size = size
-            self.apply_scale()
+        if not self.load_asset_content():
+            raise ValueError(f"Unable to load asset: {self.asset_path}")
 
         self.apply_window_flags()
         self.apply_click_through()
@@ -124,9 +152,108 @@ class OverlayWindow(QWidget):
         y = int(config.get("y", 100))
         self.move(self.clamped_position(QPoint(x, y)))
 
-        self.movie.frameChanged.connect(self.resize_to_movie)
-        self.movie.start()
-        self.resize_to_movie()
+        self.start_playback()
+
+    def load_asset_content(self):
+        errors = validate_asset_metadata(self.asset)
+        if errors:
+            for error in errors:
+                print(f"Warning: {self.asset.path}: {error}")
+            return False
+
+        if self.asset_type == AssetType.GIF:
+            self.movie = QMovie(str(self.asset_path))
+            self.movie.setCacheMode(QMovie.CacheAll)
+            self.movie.setSpeed(self.speed)
+
+            size = QImageReader(str(self.asset_path)).size()
+            if not size.isValid():
+                size = self.movie.frameRect().size()
+            if size.isValid():
+                self.base_size = size
+                self.apply_scale()
+
+            self.movie.frameChanged.connect(self.update_from_movie)
+            return True
+
+        if self.asset_type == AssetType.STATIC_IMAGE:
+            self.static_pixmap = QPixmap(str(self.asset_path))
+            if self.static_pixmap.isNull():
+                print(f"Warning: unreadable image skipped: {self.asset_path}")
+                return False
+            self.current_pixmap = self.static_pixmap
+            self.base_size = self.static_pixmap.size()
+            self.apply_scale()
+            return True
+
+        if self.asset_type == AssetType.FRAME_ANIMATION:
+            self.frame_player = FrameAnimationPlayer(
+                frame_paths_for_folder(self.asset_path),
+                fps=self.asset.fps or 12,
+                parent=self,
+            )
+            self.frame_player.set_speed(self.speed)
+            self.frame_player.pixmap_changed.connect(self.update_from_frame_player)
+            if not self.frame_player.frames:
+                print(f"Warning: no readable frames in asset skipped: {self.asset_path}")
+                return False
+            self.current_pixmap = self.frame_player.frames[0]
+            self.base_size = self.current_pixmap.size()
+            self.apply_scale()
+            return True
+
+        if self.asset_type == AssetType.SPRITE_STRIP:
+            metadata = self.asset.metadata or {}
+            frames = load_sprite_strip_frames(self.asset_path, metadata)
+            if not frames:
+                print(f"Warning: no readable sprite strip frames in asset skipped: {self.asset_path}")
+                return False
+            fps = metadata.get("fps", self.asset.fps or 8)
+            loop = bool(metadata.get("loop", True))
+            self.sprite_player = SpriteAnimationPlayer(frames, fps=fps, loop=loop, parent=self)
+            self.sprite_player.set_speed(self.speed)
+            self.sprite_player.pixmap_changed.connect(self.update_from_sprite_player)
+            self.current_pixmap = frames[0]
+            self.base_size = self.current_pixmap.size()
+            self.apply_scale()
+            return True
+
+        if self.asset_type == AssetType.SPRITESHEET:
+            metadata = self.asset.metadata or {}
+            frames, fps, loop, selected_name = load_spritesheet_frames(self.asset_path, metadata, self.current_animation)
+            if not frames:
+                print(f"Warning: no readable spritesheet frames in asset skipped: {self.asset_path}")
+                return False
+            self.current_animation = selected_name
+            self.sprite_player = SpriteAnimationPlayer(frames, fps=fps, loop=loop, parent=self)
+            self.sprite_player.set_speed(self.speed)
+            self.sprite_player.pixmap_changed.connect(self.update_from_sprite_player)
+            self.current_pixmap = frames[0]
+            self.base_size = self.current_pixmap.size()
+            self.apply_scale()
+            return True
+
+        if self.asset_type == AssetType.COMPOSITE_UI:
+            metadata = self._composite_metadata_with_runtime_values()
+            self.composite_renderer = CompositeUIRenderer(self.asset_path, metadata)
+            if not self.composite_renderer.layers:
+                print(f"Warning: no readable composite_ui layers in asset skipped: {self.asset_path}")
+                return False
+            self.current_pixmap = self.composite_renderer.render()
+            self.base_size = self.current_pixmap.size()
+            self.apply_scale()
+            return True
+
+        return False
+
+    def start_playback(self):
+        if self.movie is not None:
+            self.movie.start()
+            self.update_from_movie()
+        if self.frame_player is not None:
+            self.frame_player.start()
+        if self.sprite_player is not None:
+            self.sprite_player.start()
 
     def apply_window_flags(self):
         was_visible = self.isVisible()
@@ -161,16 +288,143 @@ class OverlayWindow(QWidget):
         y = min(max(pos.y(), geometry.top()), max_y)
         return QPoint(x, y)
 
-    def resize_to_movie(self):
+    def update_from_movie(self):
         pixmap = self.movie.currentPixmap()
+        self.set_current_pixmap(pixmap)
+
+    def update_from_frame_player(self, pixmap):
+        self.set_current_pixmap(pixmap)
+
+    def update_from_sprite_player(self, pixmap):
+        self.set_current_pixmap(pixmap)
+
+    def clipped_layer_values(self):
+        if self.asset_type != AssetType.COMPOSITE_UI:
+            return {}
+        values = {}
+        for layer in (self.asset.metadata or {}).get("layers", []):
+            if not isinstance(layer, dict):
+                continue
+            if str(layer.get("clip") or "").lower() not in {"horizontal", "vertical"}:
+                continue
+            name = str(layer.get("name") or layer.get("image") or "layer")
+            values[name] = float(self.layer_values.get(name, layer.get("value", 1.0)))
+        return values
+
+    def available_animations(self):
+        animations = (self.asset.metadata or {}).get("animations")
+        return list(animations.keys()) if self.asset_type == AssetType.SPRITESHEET and isinstance(animations, dict) else []
+
+    def set_layer_value(self, layer_name, value):
+        if self.asset_type != AssetType.COMPOSITE_UI:
+            return
+        value = min(1.0, max(0.0, float(value)))
+        self.layer_values[str(layer_name)] = value
+        if self.composite_renderer is not None:
+            self.current_pixmap = self.composite_renderer.set_layer_value(str(layer_name), value)
+            self.update()
+        save_config()
+
+    def set_animation(self, animation_name):
+        if self.asset_type != AssetType.SPRITESHEET:
+            return False
+        animations = (self.asset.metadata or {}).get("animations")
+        if not isinstance(animations, dict) or animation_name not in animations:
+            return False
+        if self.sprite_player is not None:
+            self.sprite_player.stop()
+            self.sprite_player.deleteLater()
+            self.sprite_player = None
+        frames, fps, loop, selected_name = load_spritesheet_frames(self.asset_path, self.asset.metadata or {}, animation_name)
+        if not frames:
+            return False
+        self.current_animation = selected_name
+        self.sprite_player = SpriteAnimationPlayer(frames, fps=fps, loop=loop, parent=self)
+        self.sprite_player.set_speed(self.speed)
+        self.sprite_player.pixmap_changed.connect(self.update_from_sprite_player)
+        self.current_pixmap = frames[0]
+        self.base_size = self.current_pixmap.size()
+        self.apply_scale()
+        self.sprite_player.start()
+        save_config()
+        return True
+
+    def reload_asset_definition(self, new_asset_definition=None):
+        old_state = {
+            "asset": self.asset,
+            "asset_type": self.asset_type,
+            "base_size": self.base_size,
+            "current_pixmap": self.current_pixmap,
+            "movie": self.movie,
+            "frame_player": self.frame_player,
+            "sprite_player": self.sprite_player,
+            "composite_renderer": self.composite_renderer,
+        }
+        self.stop_playback()
+        if new_asset_definition is None:
+            new_asset_definition = detect_asset(self.asset_path)
+        if new_asset_definition is None:
+            self._restore_renderer_state(old_state)
+            return False
+
+        self.asset = new_asset_definition
+        self.asset_path = Path(new_asset_definition.path).resolve()
+        self.asset_type = new_asset_definition.type
+        self.movie = None
+        self.frame_player = None
+        self.sprite_player = None
+        self.composite_renderer = None
+        self.current_pixmap = QPixmap()
+        if not self.load_asset_content():
+            self._restore_renderer_state(old_state)
+            return False
+        self.start_playback()
+        self.update()
+        return True
+
+    def stop_playback(self):
+        if self.movie is not None:
+            self.movie.stop()
+        if self.frame_player is not None:
+            self.frame_player.stop()
+        if self.sprite_player is not None:
+            self.sprite_player.stop()
+
+    def _restore_renderer_state(self, state_data):
+        self.asset = state_data["asset"]
+        self.asset_type = state_data["asset_type"]
+        self.base_size = state_data["base_size"]
+        self.current_pixmap = state_data["current_pixmap"]
+        self.movie = state_data["movie"]
+        self.frame_player = state_data["frame_player"]
+        self.sprite_player = state_data["sprite_player"]
+        self.composite_renderer = state_data["composite_renderer"]
+        self.start_playback()
+
+    def _composite_metadata_with_runtime_values(self):
+        metadata = dict(self.asset.metadata or {})
+        layers = []
+        for layer in metadata.get("layers", []):
+            if not isinstance(layer, dict):
+                continue
+            layer_copy = dict(layer)
+            name = str(layer_copy.get("name") or layer_copy.get("image") or "layer")
+            if name in self.layer_values:
+                layer_copy["value"] = self.layer_values[name]
+            layers.append(layer_copy)
+        metadata["layers"] = layers
+        return metadata
+
+    def set_current_pixmap(self, pixmap):
         size = pixmap.size()
         if size.isValid() and self.base_size != size:
             self.base_size = size
             self.apply_scale()
+        self.current_pixmap = pixmap
         self.update()
 
     def paintEvent(self, event):
-        pixmap = self.movie.currentPixmap()
+        pixmap = self.current_pixmap
         if not pixmap.isNull():
             painter = QPainter(self)
             painter.setCompositionMode(QPainter.CompositionMode_Source)
@@ -224,7 +478,7 @@ class OverlayWindow(QWidget):
     def open_menu(self, pos):
         menu = QMenu(self)
 
-        close_action = QAction("Close animation", self)
+        close_action = QAction("Close asset", self)
         close_action.triggered.connect(self.close)
         menu.addAction(close_action)
 
@@ -254,8 +508,8 @@ class OverlayWindow(QWidget):
 
         menu.addSeparator()
 
-        import_action = QAction("Import GIF...", self)
-        import_action.triggered.connect(self.add_gif)
+        import_action = QAction("Import Asset...", self)
+        import_action.triggered.connect(self.add_asset)
         menu.addAction(import_action)
 
         exit_action = QAction("Exit", self)
@@ -264,8 +518,13 @@ class OverlayWindow(QWidget):
 
         menu.exec(pos)
 
-    def add_gif(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Import GIF", str(BASE_DIR), "GIF files (*.gif)")
+    def add_asset(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Import Asset",
+            str(BASE_DIR),
+            "Visual assets (*.gif *.png *.jpg *.jpeg *.webp)",
+        )
         if path:
             add_window(path)
             if state.CONTROL_PANEL is not None:
@@ -307,13 +566,20 @@ class OverlayWindow(QWidget):
 
     def set_speed(self, value):
         self.speed = int(value)
-        self.movie.setSpeed(self.speed)
+        if self.movie is not None:
+            self.movie.setSpeed(self.speed)
+        if self.frame_player is not None:
+            self.frame_player.set_speed(self.speed)
+        if self.sprite_player is not None:
+            self.sprite_player.set_speed(self.speed)
         save_config()
 
     def to_config(self):
         pos = self.pos()
-        return {
-            "path": stored_path(self.gif_path),
+        data = {
+            "path": stored_path(self.asset_path),
+            "asset_id": self.asset.id,
+            "asset_type": self.asset_type,
             "x": pos.x(),
             "y": pos.y(),
             "locked": self.locked,
@@ -323,8 +589,15 @@ class OverlayWindow(QWidget):
             "opacity": self.opacity,
             "speed": self.speed,
         }
+        if self.layer_values:
+            data["layer_values"] = self.layer_values
+        if self.current_animation:
+            data["current_animation"] = self.current_animation
+        return data
 
     def closeEvent(self, event):
+        self.stop_playback()
+
         if state.EXITING:
             save_config()
             super().closeEvent(event)
