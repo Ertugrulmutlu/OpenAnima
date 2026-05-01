@@ -12,9 +12,20 @@
   Place GIFs, sprites, frame animations, HUD elements, and game-style assets directly on your desktop.
 </p>
 
+<p align="center">
+  <a href="https://ertugrulmutlu.github.io/OpenAnima/"><strong>Website</strong></a>
+  ·
+  <a href="https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview"><strong>Latest Release</strong></a>
+  ·
+  <a href="https://ertugrulmutlu.itch.io/openanima"><strong>itch.io</strong></a>
+  ·
+  <a href="https://youtu.be/qgJBF40b_L8"><strong>Demo Video</strong></a>
+</p>
+
 ---
 
 ## 🎬 Demo
+
 > OpenAnima can turn your desktop into a small animated scene using game-style assets.
 
 <p align="center">
@@ -28,6 +39,46 @@
     Watch the demo on YouTube
   </a>
 </p>
+
+---
+
+## 🌐 Links
+
+* Website: [https://ertugrulmutlu.github.io/OpenAnima/](https://ertugrulmutlu.github.io/OpenAnima/)
+* GitHub: [https://github.com/Ertugrulmutlu/OpenAnima](https://github.com/Ertugrulmutlu/OpenAnima)
+* Latest release: [https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview](https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview)
+* itch.io: [https://ertugrulmutlu.itch.io/openanima](https://ertugrulmutlu.itch.io/openanima)
+* Demo video: [https://youtu.be/qgJBF40b_L8](https://youtu.be/qgJBF40b_L8)
+
+---
+
+## 📸 Screenshots
+
+<p align="center">
+  <img src="images/DsrMR_.png" alt="OpenAnima Library tab" width="720" />
+</p>
+
+<p align="center">
+  <em>Library tab for browsing imported assets, changing the asset folder, configuring assets, and adding overlays to the desktop.</em>
+</p>
+
+<p align="center">
+  <img src="images/Bkmvec.png" alt="OpenAnima Active tab" width="720" />
+</p>
+
+<p align="center">
+  <em>Active tab for selecting running overlays, editing them, locking/unlocking them, hiding them, or closing them.</em>
+</p>
+
+<p align="center">
+  <img src="images/svkBJA.png" alt="OpenAnima Asset Setup dialog" width="720" />
+</p>
+
+<p align="center">
+  <em>Asset Setup dialog for configuring metadata-driven assets such as composite UI/HUD overlays.</em>
+</p>
+
+---
 
 ## 🧠 What is OpenAnima?
 
@@ -484,7 +535,11 @@ Performance note:
 
 Get the latest Windows build from:
 
-👉 [OpenAnima Releases](https://github.com/Ertugrulmutlu/OpenAnima/releases)
+👉 [OpenAnima v0.2 Preview Release](https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview)
+
+You can also download it from itch.io:
+
+👉 [OpenAnima on itch.io](https://ertugrulmutlu.itch.io/openanima)
 
 ---
 
