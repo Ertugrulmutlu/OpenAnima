@@ -1,0 +1,8 @@
+from .constants import DEFAULT_ASSETS_DIR
+
+
+ASSETS_DIR = DEFAULT_ASSETS_DIR
+WINDOWS = []
+CONTROL_PANEL = None
+TRAY_ICON = None
+EXITING = False
