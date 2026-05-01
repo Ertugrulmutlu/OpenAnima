@@ -18,7 +18,9 @@
 
 > OpenAnima can turn your desktop into a small animated scene using game-style assets.
 
-[Watch demo video](demo.mp4)
+<p align="center">
+  <img src="demo.gif" alt="OpenAnima Demo" width="720" />
+</p>
 
 ## 🧠 What is OpenAnima?
 
