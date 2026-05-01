@@ -21,7 +21,7 @@
 <!-- Replace this with your real demo video link after uploading the video to GitHub release/assets. -->
 
 ```txt
-https://github.com/user-attachments/assets/YOUR_DEMO_VIDEO_ID
+[https://github.com/user-attachments/assets/YOUR_DEMO_VIDEO_ID](https://github.com/Ertugrulmutlu/OpenAnima/blob/main/demo.mp4)
 ```
 
 ---
