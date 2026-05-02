@@ -23,6 +23,8 @@
 - Launch the app with `python main.py` and smoke test core desktop overlay workflows.
 - Corrupt a temporary copy of `config.json` and confirm OpenAnima starts with defaults while preserving a `config.corrupt.*.json` backup.
 - Open the Diagnostics tab, verify paths and active overlay count, open the logs folder, and copy diagnostic info to the clipboard.
+- Use Active > Recovery to show/hide overlays, bring overlays to center, disable click-through, unlock overlays, and clear the saved session.
+- Use the tray menu emergency actions to show overlays, disable click-through, and bring overlays to center.
 
 ## Packaging
 

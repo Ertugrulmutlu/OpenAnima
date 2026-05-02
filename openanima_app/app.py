@@ -10,6 +10,7 @@ from .constants import DARK_STYLE, DEFAULT_GIF, ICON_PATH
 from .control_panel import ControlPanel
 from .logging_utils import configure_logging, log_info
 from .overlay import add_window, exit_app, refresh_control_panel
+from .recovery import bring_all_overlays_to_center, disable_click_through_for_all, show_all_overlays
 
 
 def show_control_panel():
@@ -23,6 +24,11 @@ def load_app_icon():
     return QIcon(str(ICON_PATH)) if ICON_PATH.exists() else QIcon()
 
 
+def run_tray_recovery_action(action):
+    action()
+    refresh_control_panel()
+
+
 def create_tray_icon(app, app_icon):
     tray_icon = app_icon if not app_icon.isNull() else app.style().standardIcon(QStyle.SP_ComputerIcon)
     tray = QSystemTrayIcon(tray_icon, app)
@@ -30,10 +36,20 @@ def create_tray_icon(app, app_icon):
 
     menu = QMenu()
     show_action = QAction("Show Control Panel", menu)
+    show_overlays_action = QAction("Show all overlays", menu)
+    disable_click_action = QAction("Disable click-through for all", menu)
+    center_action = QAction("Bring all overlays to center", menu)
     exit_action = QAction("Exit", menu)
     show_action.triggered.connect(show_control_panel)
+    show_overlays_action.triggered.connect(lambda: run_tray_recovery_action(show_all_overlays))
+    disable_click_action.triggered.connect(lambda: run_tray_recovery_action(disable_click_through_for_all))
+    center_action.triggered.connect(lambda: run_tray_recovery_action(bring_all_overlays_to_center))
     exit_action.triggered.connect(exit_app)
     menu.addAction(show_action)
+    menu.addSeparator()
+    menu.addAction(show_overlays_action)
+    menu.addAction(disable_click_action)
+    menu.addAction(center_action)
     menu.addSeparator()
     menu.addAction(exit_action)
 

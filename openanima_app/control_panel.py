@@ -46,8 +46,9 @@ from .assets import (
     save_config,
 )
 from .constants import BASE_DIR, CONFIG_PATH, LOG_DIR, LOG_PATH, THUMBNAIL_SIZE
-from .logging_utils import log_warning, recent_warnings_and_errors
+from .logging_utils import log_info, log_warning, recent_warnings_and_errors
 from .overlay import add_window, confirm_exit_or_tray
+from . import recovery
 from .startup import set_startup_enabled, startup_enabled
 from .version import __version__
 
@@ -194,6 +195,36 @@ class ControlPanel(QWidget):
         buttons.addWidget(hide_all_button)
         buttons.addWidget(show_all_button)
 
+        recovery_group = QGroupBox("Recovery")
+        recovery_layout = QVBoxLayout(recovery_group)
+        recovery_layout.setContentsMargins(14, 18, 14, 14)
+        recovery_layout.setSpacing(8)
+
+        recovery_row_one = QHBoxLayout()
+        center_all_button = QPushButton("Bring all to center")
+        disable_click_button = QPushButton("Disable click-through")
+        unlock_all_button = QPushButton("Unlock all")
+        center_all_button.clicked.connect(self.bring_all_overlays_to_center)
+        disable_click_button.clicked.connect(self.disable_click_through_for_all)
+        unlock_all_button.clicked.connect(self.unlock_all_overlays)
+        recovery_row_one.addWidget(center_all_button)
+        recovery_row_one.addWidget(disable_click_button)
+        recovery_row_one.addWidget(unlock_all_button)
+
+        recovery_row_two = QHBoxLayout()
+        recovery_show_button = QPushButton("Show all")
+        recovery_hide_button = QPushButton("Hide all")
+        clear_session_button = QPushButton("Clear saved session")
+        recovery_show_button.clicked.connect(self.show_all_overlays)
+        recovery_hide_button.clicked.connect(self.hide_all_overlays)
+        clear_session_button.clicked.connect(self.clear_saved_session)
+        recovery_row_two.addWidget(recovery_show_button)
+        recovery_row_two.addWidget(recovery_hide_button)
+        recovery_row_two.addWidget(clear_session_button)
+
+        recovery_layout.addLayout(recovery_row_one)
+        recovery_layout.addLayout(recovery_row_two)
+
         self.startup_check = QCheckBox("Start on system boot")
         self.startup_check.setEnabled(False)
         if hasattr(self.startup_check, "setVisible"):
@@ -209,6 +240,7 @@ class ControlPanel(QWidget):
         layout.addWidget(subtitle)
         layout.addWidget(self.active_list, 1)
         layout.addLayout(buttons)
+        layout.addWidget(recovery_group)
         layout.addWidget(self.startup_check)
         self.tabs.addTab(tab, "Active")
 
@@ -721,13 +753,51 @@ class ControlPanel(QWidget):
             add_window(item.data(Qt.UserRole))
 
     def hide_all_overlays(self):
-        for window in state.WINDOWS:
-            window.setVisible(False)
+        recovery.hide_all_overlays()
+        self.refresh_active()
 
     def show_all_overlays(self):
-        for window in state.WINDOWS:
-            window.setVisible(True)
-            window.raise_()
+        recovery.show_all_overlays()
+        self.refresh_active()
+
+    def bring_all_overlays_to_center(self):
+        recovery.bring_all_overlays_to_center()
+        self.refresh_active()
+
+    def disable_click_through_for_all(self):
+        recovery.disable_click_through_for_all()
+        if self.selected_window in state.WINDOWS:
+            self.load_editor(self.selected_window)
+        self.refresh_active()
+
+    def unlock_all_overlays(self):
+        recovery.unlock_all_overlays()
+        if self.selected_window in state.WINDOWS:
+            self.load_editor(self.selected_window)
+        self.refresh_active()
+
+    def clear_saved_session(self):
+        if not state.WINDOWS:
+            save_config([])
+            log_info("Recovery action: clear saved session requested with no active overlays")
+            self.refresh_active()
+            return
+
+        result = QMessageBox.question(
+            self,
+            "Clear Saved Session",
+            "Close all active overlays and save an empty session?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if result != QMessageBox.Yes:
+            return
+
+        self.selected_window = None
+        self.load_editor(None)
+        self.hide_editor_tab()
+        recovery.clear_saved_session()
+        self.refresh_active()
 
     def select_window(self, window):
         if window not in state.WINDOWS:
