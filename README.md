@@ -5,32 +5,98 @@
 </p>
 
 <p align="center">
-  <strong>Open-source desktop asset overlay engine for Windows.</strong>
+  <strong>Open-source desktop asset overlays for Windows.</strong>
 </p>
 
 <p align="center">
-  Place GIFs, sprites, frame animations, HUD elements, and game-style assets directly on your desktop.
+  Place GIFs, sprites, frame animations, HUD elements, and other 2D visual assets directly on your desktop.
 </p>
 
 <p align="center">
   <a href="https://ertugrulmutlu.github.io/OpenAnima/"><strong>Website</strong></a>
-  ·
-  <a href="https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview"><strong>Latest Release</strong></a>
-  ·
+  |
+  <a href="https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview"><strong>Latest Published Release</strong></a>
+  |
   <a href="https://ertugrulmutlu.itch.io/openanima"><strong>itch.io</strong></a>
-  ·
+  |
   <a href="https://youtu.be/qgJBF40b_L8"><strong>Demo Video</strong></a>
 </p>
 
 ---
 
-## Version / Release status
+## Release Status
 
-OpenAnima is preparing for `v1.0.0-rc1`. The package version is defined in `openanima_app/version.py` and exposed as `openanima_app.__version__`.
+OpenAnima is preparing for `v1.0.0-rc1`.
+
+The package version is defined in `openanima_app/version.py` and exposed as:
+
+```python
+import openanima_app
+
+print(openanima_app.__version__)
+```
+
+The current v1 release candidate focuses on reliable 2D overlays, local asset management, recovery tools, diagnostics, and safer config persistence. 3D support is not part of v1.0.
 
 ---
 
-## 🎬 Demo
+## What OpenAnima Does
+
+OpenAnima is a lightweight Windows desktop app for placing local visual assets on top of your desktop as independent overlay windows.
+
+You can use it for:
+
+* desktop pets
+* animated GIF overlays
+* pixel-art characters
+* sticker-like static images
+* frame-folder animations
+* sprite strips and spritesheets
+* small HUD or game-style UI overlays
+* experimental desktop customization
+
+Each overlay can be moved, scaled, hidden, locked, made click-through, kept on top, and restored on the next launch.
+
+---
+
+## Quick Start
+
+### Download
+
+The latest published preview build is available here:
+
+* [OpenAnima v0.2 Preview Release](https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview)
+* [OpenAnima on itch.io](https://ertugrulmutlu.itch.io/openanima)
+
+The `v1.0.0-rc1` build is being prepared.
+
+### Run
+
+```bash
+OpenAnima.exe
+```
+
+On first launch, OpenAnima creates local runtime files such as:
+
+```txt
+assets/
+config.json
+logs/
+```
+
+### Add Your First Asset
+
+1. Open the Control Panel.
+2. Go to **Library**.
+3. Click **Import Asset** or **Import Folder**.
+4. Select a supported file or folder.
+5. Review the analyzer result.
+6. Confirm or configure the asset type.
+7. Click **Add to Desktop**.
+
+---
+
+## Demo
 
 > OpenAnima can turn your desktop into a small animated scene using game-style assets.
 
@@ -48,17 +114,7 @@ OpenAnima is preparing for `v1.0.0-rc1`. The package version is defined in `open
 
 ---
 
-## 🌐 Links
-
-* Website: [https://ertugrulmutlu.github.io/OpenAnima/](https://ertugrulmutlu.github.io/OpenAnima/)
-* GitHub: [https://github.com/Ertugrulmutlu/OpenAnima](https://github.com/Ertugrulmutlu/OpenAnima)
-* Latest release: [https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview](https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview)
-* itch.io: [https://ertugrulmutlu.itch.io/openanima](https://ertugrulmutlu.itch.io/openanima)
-* Demo video: [https://youtu.be/qgJBF40b_L8](https://youtu.be/qgJBF40b_L8)
-
----
-
-## 📸 Screenshots
+## Screenshots
 
 <p align="center">
   <img src="images/DsrMR_.png" alt="OpenAnima Library tab" width="720" />
@@ -86,66 +142,23 @@ OpenAnima is preparing for `v1.0.0-rc1`. The package version is defined in `open
 
 ---
 
-## 🧠 What is OpenAnima?
+## Main Features
 
-**OpenAnima** is an open-source desktop asset overlay engine for Windows.
-
-It started as a lightweight GIF overlay tool, but it is now evolving into a small desktop engine for visual assets.
-
-OpenAnima lets you place animated and static assets directly on your desktop as independent overlay objects.
-
-You can use it for:
-
-* desktop pets
-* animated GIF overlays
-* pixel-art characters
-* sprite animations
-* small desktop scenes
-* HUD / UI overlays
-* game-style visual assets
-* experimental desktop customization
-
-Instead of being just a wallpaper, OpenAnima lets you spawn and control desktop objects in real time.
-
-You can:
-
-* spawn multiple overlay assets
-* drag them anywhere
-* lock them in place
-* make them click-through
-* keep them always on top
-* control scale, opacity, and animation speed
-* import and configure different asset formats
-* restore your scene on the next launch
-
-All in a lightweight Python-based desktop application.
+* Multiple independent desktop overlay windows
+* Drag, scale, opacity, and animation speed controls
+* Lock, click-through, and always-on-top modes
+* Asset library with local asset folders
+* Import wizard and asset analyzer
+* Metadata-driven sprite and HUD asset support
+* Persistent saved sessions in `config.json`
+* Safe config recovery for missing, invalid, or old configs
+* Recovery actions for off-screen, hidden, locked, or click-through overlays
+* File logging and a Diagnostics tab for packaged builds
+* System tray controls for emergency recovery actions
 
 ---
 
-## ✨ Core Features
-
-### 🖱️ Desktop Asset Overlays
-
-OpenAnima lets you place visual assets anywhere on your screen.
-
-Each asset runs as an independent desktop overlay window.
-
-Supported basic controls:
-
-* drag and reposition
-* scale
-* opacity
-* speed for animated assets
-* lock / unlock
-* click-through mode
-* always-on-top mode
-* persistent position and settings
-
----
-
-## 📦 Supported Asset Types
-
-OpenAnima now supports more than GIFs.
+## Supported Asset Types
 
 ### GIF
 
@@ -153,23 +166,9 @@ OpenAnima now supports more than GIFs.
 something.gif
 ```
 
-GIF files are played using Qt's animation system.
-
-Supported controls:
-
-* scale
-* opacity
-* speed
-* lock / unlock
-* click-through
-* always-on-top
-* persistent position
-
----
+GIF files are played using Qt's animation system. They support scale, opacity, speed, lock, click-through, always-on-top, and persistent position.
 
 ### Static Images
-
-Supported formats:
 
 ```txt
 .png
@@ -178,17 +177,11 @@ Supported formats:
 .webp
 ```
 
-Static images are rendered as desktop overlay objects.
-
-Transparent PNGs work well for stickers, icons, characters, and decorative elements.
-
----
+Static images are rendered as desktop overlay objects. Transparent PNGs work well for stickers, icons, characters, and decorative elements.
 
 ### Frame-Folder Animations
 
 Frame animations can be stored as folders of ordered image files.
-
-Example:
 
 ```txt
 Idle/
@@ -207,23 +200,11 @@ Optional metadata:
 }
 ```
 
-OpenAnima sorts frames naturally, so files like:
-
-```txt
-idle_1.png
-idle_2.png
-idle_10.png
-```
-
-play in the expected order.
-
----
+OpenAnima sorts frames naturally, so `idle_1.png`, `idle_2.png`, and `idle_10.png` play in the expected order.
 
 ### Sprite Strips
 
 Sprite strips are single images containing multiple frames in one row or column.
-
-Example:
 
 ```txt
 Run/
@@ -245,29 +226,11 @@ Run/
 }
 ```
 
-OpenAnima crops the strip into individual frames and plays one frame at a time.
-
-Sprite strip setup supports:
-
-* horizontal strips
-* vertical strips
-* frame count
-* FPS
-* loop
-* explicit frame width
-* explicit frame height
-* manual crop margins
-* anchor metadata
-* live frame preview grid
-* frame export helper
-
----
+Sprite strip setup supports horizontal and vertical strips, frame count, FPS, loop mode, explicit frame size, crop margins, live preview, and frame export.
 
 ### Spritesheets
 
 Spritesheets can define named animations using metadata.
-
-Example:
 
 ```txt
 Slime/
@@ -297,33 +260,11 @@ Slime/
 }
 ```
 
-Supported spritesheet features:
-
-* frame width / height
-* named animations
-* default animation
-* `col` / `row` frame definitions
-* direct `x` / `y` frame definitions
-* animation-specific FPS
-* animation selection in the editor
-* per-overlay selected animation persistence
-
----
+Supported spritesheet features include named animations, default animation, `col` / `row` frame definitions, direct `x` / `y` frame definitions, animation-specific FPS, animation selection in the editor, and per-overlay animation persistence.
 
 ### Composite UI / HUD Assets
 
-Composite UI assets are made from multiple image layers.
-
-This is useful for game-style HUD elements like:
-
-* health bars
-* mana bars
-* stamina bars
-* energy bars
-* status panels
-* layered UI widgets
-
-Example:
+Composite UI assets are made from multiple image layers. They are useful for HUD-style elements such as health bars, mana bars, stamina bars, energy bars, status panels, and layered UI widgets.
 
 ```txt
 HP Bar/
@@ -359,61 +300,45 @@ HP Bar/
 }
 ```
 
-Composite UI layers support:
-
-* image
-* x / y position
-* visibility
-* opacity
-* horizontal clipping
-* vertical clipping
-* runtime value
-
-Clipped layers can be controlled live from the editor using runtime sliders.
-
-For example:
-
-* health
-* mana
-* energy
-* stamina
-
-Runtime values are saved per overlay instance without overwriting the original `asset.json`.
+Composite layers support image paths, x/y position, visibility, opacity, horizontal clipping, vertical clipping, and runtime values. Runtime values are saved per overlay without overwriting the original `asset.json`.
 
 ---
 
-## 🧰 Control Panel
+## Feature Status
 
-OpenAnima includes a built-in Control Panel.
-
-### 📚 Library Tab
-
-Use the Library tab to:
-
-* browse available assets
-* import files or folders
-* run the asset analyzer
-* configure metadata-driven assets
-* add assets to the desktop
-
----
-
-### ⚡ Active Tab
-
-Use the Active tab to:
-
-* view running overlays
-* select active overlays
-* close overlays
-* manage currently active desktop assets
+| Area | Status | Notes |
+| --- | --- | --- |
+| GIF overlays | Stable | Core workflow for animated desktop overlays. |
+| Static image overlays | Stable | Good for transparent PNGs and sticker-like assets. |
+| Frame-folder animations | Stable | Uses ordered local image files and optional FPS metadata. |
+| Overlay transform controls | Stable | Move, scale, opacity, speed, lock, click-through, and always-on-top. |
+| Session persistence | Stable | Saved to `config.json` with schema versioning and safe recovery. |
+| Recovery tools | Stable | Center overlays, show/hide all, unlock all, disable click-through, and clear session. |
+| Diagnostics and logs | Stable | `logs/openanima.log` plus Diagnostics tab. |
+| Asset import analyzer | Beta | Helps classify assets, but ambiguous packs may still need manual setup. |
+| Sprite strip setup | Beta | Functional; unusual padding or frame layouts may need manual crop values. |
+| Spritesheet metadata | Beta | Works with explicit metadata; automatic detection is limited. |
+| Composite UI / HUD overlays | Beta | Useful for layered HUD assets; editor is not a full design tool. |
+| Metadata reload for running overlays | Beta | Reloads many changes safely, but some invalid changes are rejected. |
+| Complex third-party asset packs | Known limitation | Licensing and inconsistent folder formats may require manual cleanup. |
+| 3D model support | Experimental after v1.0 | Planned research area; not included in v1.0. |
+| Cross-platform support | Known limitation | v1.0 is focused on Windows. |
 
 ---
 
-### 🛠️ Editor Tab
+## Control Panel
 
-Use the Editor tab to fine-tune selected overlays.
+### Library
 
-Common controls:
+Use the Library tab to browse asset packs, import files or folders, run the asset analyzer, configure metadata-driven assets, and add overlays to the desktop.
+
+### Active
+
+Use the Active tab to view running overlays, select overlays, close overlays, edit overlay state, and access recovery tools.
+
+### Editor
+
+Use the Editor tab to fine-tune selected overlays:
 
 * scale
 * opacity
@@ -422,85 +347,86 @@ Common controls:
 * click-through
 * always-on-top
 * reload asset
-
-Asset-specific controls:
-
-* spritesheet animation selector
+* spritesheet animation selection
 * composite UI runtime sliders
-* metadata-based reload support
+
+### Diagnostics
+
+Use the Diagnostics tab to inspect:
+
+* OpenAnima version
+* config path
+* current asset root
+* log file path
+* active overlay count
+* recent warnings and errors
+
+The tab also includes buttons to open the logs folder and copy diagnostic info to the clipboard.
 
 ---
 
-## 🧠 Smart Asset Import
+## Recovery and Reset Tools
 
-OpenAnima includes an asset analyzer and import wizard.
+OpenAnima includes recovery actions so users can regain control if overlays are hidden, locked, click-through, or off-screen.
 
-When importing a file or folder, OpenAnima can detect possible asset types and show confidence-based guesses.
+Available from the **Active** tab:
 
-The analyzer can detect:
+* **Bring all to center**: moves active overlays to the center of the primary screen.
+* **Disable click-through**: makes every active overlay interactive again.
+* **Unlock all**: unlocks every active overlay.
+* **Show all**: shows hidden overlays.
+* **Hide all**: hides active overlays.
+* **Clear saved session**: closes active overlays and saves an empty overlay session after confirmation.
 
-* GIF
-* static image
-* frame-folder animation
-* horizontal sprite strip
-* vertical sprite strip
-* spritesheet / grid-based asset
-* composite UI / HUD folder
-* existing `asset.json`
-* preview / sample / example files
+Available from the system tray menu:
 
-The user can choose or correct the final asset type before metadata is created.
-
-This helps avoid importing ambiguous game assets incorrectly.
-
----
-
-## 🛠️ Asset Setup Dialog
-
-Metadata-driven assets can be configured through the Asset Setup dialog.
-
-Current setup tools include:
-
-### Sprite Strip Setup
-
-* frame count editor
-* direction selector
-* frame width / height fields
-* crop left / top / right / bottom fields
-* anchor X / Y fields
-* live frame preview grid
-* frame export helper
-* side-by-side settings and preview layout
-
-### Composite UI Setup
-
-* visual layer editor
-* layer selection
-* layer movement
-* layer reordering
-* preview click selection
-* drag-to-move layers
-* keyboard nudging
-* duplicate layer
-* delete layer
-* copy / paste layer
-* undo / redo
-* bring forward / send backward
-* bring to front / send to back
-* drag-and-drop layer reordering
-* overlap cycling with Alt/Ctrl click
-* bounds / grid display
+* **Show Control Panel**
+* **Show all overlays**
+* **Disable click-through for all**
+* **Bring all overlays to center**
+* **Exit**
 
 ---
 
-## 💾 Persistent State
+## Diagnostics and Logs
 
-OpenAnima saves overlay state automatically.
+OpenAnima writes logs to:
 
-Saved properties include:
+```txt
+logs/openanima.log
+```
 
-* asset path
-* asset type
+Logs use Python's standard logging system with rotation. They are useful when running a packaged build without a terminal.
+
+Logged events include:
+
+* app startup and shutdown
+* config load/save warnings
+* corrupt config backup
+* missing saved assets
+* unsupported asset imports
+* metadata validation warnings
+* overlay creation, removal, and reload events
+* recovery actions
+
+If logging setup fails, OpenAnima should still start.
+
+---
+
+## Configuration and Persistence
+
+OpenAnima stores runtime state in:
+
+```txt
+config.json
+```
+
+Saved state includes:
+
+* asset root
+* schema version
+* active overlay list
+* asset paths and asset types
 * position
 * scale
 * opacity
@@ -511,78 +437,23 @@ Saved properties include:
 * selected spritesheet animation
 * composite UI runtime values
 
-When OpenAnima starts again, active overlays are restored if their asset paths still exist.
+Config saves are atomic: OpenAnima writes a temporary file first, then replaces `config.json`.
 
-Backward compatibility is preserved for older GIF/static/frame-folder workflows.
-
----
-
-## 🖥️ System Integration
-
-OpenAnima is designed as a lightweight Windows desktop tool.
-
-Features:
-
-* system tray support
-* portable executable support
-* transparent overlay windows
-* always-on-top mode
-* click-through mode
-* local asset folders
-* no internet required for normal usage
-
-Performance note:
-
-> OpenAnima is designed to stay lightweight. In a small 2D overlay scene, it can run around ~50-70 MB RAM depending on the loaded assets.
-
----
-
-## 🚀 Download
-
-Get the latest Windows build from:
-
-👉 [OpenAnima v0.2 Preview Release](https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview)
-
-You can also download it from itch.io:
-
-👉 [OpenAnima on itch.io](https://ertugrulmutlu.itch.io/openanima)
-
----
-
-## ▶️ Usage
-
-### Start the app
-
-```bash
-OpenAnima.exe
-```
-
-### First launch
-
-The app automatically creates:
+If `config.json` is corrupted, OpenAnima backs it up as:
 
 ```txt
-assets/
-config.json
+config.corrupt.YYYYMMDD_HHMMSS.json
 ```
 
-### Add your first asset
+The app then starts with safe defaults instead of crashing.
 
-1. Open the Control Panel
-2. Go to **Library**
-3. Click **Import Asset**
-4. Select a file or folder
-5. Review the analyzer guesses
-6. Confirm or configure the asset type
-7. Click **Add to Desktop**
+If saved overlays point to missing assets, those overlays are skipped while valid saved overlays continue to load.
 
 ---
 
-## 📁 Asset Folder Structure
+## Asset Folder Structure
 
 Simple assets can be placed directly inside `assets/`.
-
-Example:
 
 ```txt
 assets/
@@ -591,8 +462,6 @@ assets/
 ```
 
 Metadata-driven assets can use folders.
-
-Example:
 
 ```txt
 assets/
@@ -609,36 +478,39 @@ assets/
 
 ---
 
-## ⚠️ Preview Status
-
-This release introduces OpenAnima's metadata-driven asset system.
-
-The following workflows are supported but still considered preview-level:
-
-* sprite strip setup
-* spritesheet configuration
-* composite UI / HUD layout editing
-* metadata reload for running overlays
-* complex game asset import workflows
-
-Some assets may require manual setup, especially when frame counts, frame sizes, layer positions, or metadata cannot be detected automatically.
-
----
-
 ## Known Limitations
 
-* Sprite strips may require manual frame count or frame size correction.
-* Some sprite strips with unusual padding may need manual crop values.
+* v1.0 is focused on 2D overlays for Windows.
+* 3D model support is not included in v1.0.
+* Sprite strips may require manual frame count, frame size, or crop correction.
 * Spritesheets require metadata or setup through the import wizard.
 * Composite UI assets may require manual layer alignment.
-* The Composite UI editor is functional but not a full professional layout tool.
-* 3D model support is not included yet.
+* The Composite UI editor is functional but not a professional layout tool.
 * Some unusual asset packs may still need manual `asset.json` editing.
-* Assets from third-party packs should only be used if their license allows it.
+* Third-party asset packs should only be used if their license allows it.
+* Cross-platform behavior is not a v1.0 guarantee.
 
 ---
 
-## ⚙️ Build from Source
+## Roadmap After v1.0
+
+Possible post-v1 improvements:
+
+* better sprite crop and anchor tools
+* improved composite UI editor
+* asset pack export/import
+* plugin or extension hooks
+* advanced animation behaviors
+* scene presets
+* improved diagnostics export
+* cross-platform investigation
+* experimental 3D model support with `.glb` / `.gltf`
+
+3D support is planned as experimental research after v1.0, not as part of the v1 release candidate.
+
+---
+
+## Build From Source
 
 ```bash
 pip install -r requirements.txt
@@ -647,7 +519,7 @@ python main.py
 
 ---
 
-## 📦 Build EXE
+## Build EXE
 
 ```bash
 pyinstaller --noconfirm --onefile --windowed --name OpenAnima --icon=icon.ico --add-data "icon.ico;." main.py
@@ -661,7 +533,7 @@ dist/OpenAnima.exe
 
 ---
 
-## 🧠 Tech Stack
+## Tech Stack
 
 * Python
 * PySide6 / Qt
@@ -671,77 +543,35 @@ dist/OpenAnima.exe
 
 ---
 
-## 💡 Why OpenAnima?
+## Links
 
-Most desktop customization tools are:
-
-* closed-source
-* heavy
-* hard to extend
-* limited to fixed workflows
-
-OpenAnima is:
-
-* open-source
-* lightweight
-* hackable
-* developer-friendly
-* asset-based
-* metadata-driven
-* built around local files and simple folders
-
-OpenAnima is not just a GIF player.
-
-It is evolving into a small desktop asset overlay engine for interactive visual assets.
+* Website: [https://ertugrulmutlu.github.io/OpenAnima/](https://ertugrulmutlu.github.io/OpenAnima/)
+* GitHub: [https://github.com/Ertugrulmutlu/OpenAnima](https://github.com/Ertugrulmutlu/OpenAnima)
+* Latest published release: [https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview](https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview)
+* itch.io: [https://ertugrulmutlu.itch.io/openanima](https://ertugrulmutlu.itch.io/openanima)
+* Demo video: [https://youtu.be/qgJBF40b_L8](https://youtu.be/qgJBF40b_L8)
 
 ---
 
-## 🔮 Future Ideas
+## Contributing
 
-Possible future improvements:
+Contributions are welcome. Good v1-focused contributions include:
 
-* 3D model support with `.glb` / `.gltf`
-* static `.obj` model support
-* better sprite crop / anchor tools
-* improved composite UI editor
-* asset pack export/import
-* plugin system
-* advanced animation behaviors
-* scene mode
-* isometric/depth-aware overlay mode
-* sound-reactive assets
-* cross-platform support
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome.
-
-You can help by:
-
-* opening issues
-* reporting bugs
+* bug reports
+* recovery and reliability testing
 * testing asset packs
 * improving import detection
-* improving UI/UX
-* adding renderer support
-* submitting pull requests
+* documentation fixes
+* focused pull requests
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for basic contributor guidance.
 
 ---
 
-## ⭐ Support
+## License
 
-If you like OpenAnima, give it a star ⭐
-
-It helps the project reach more people.
+MIT License. See [LICENSE](LICENSE).
 
 ---
 
-## 📜 License
-
-MIT License
-
----
-
-Built with ❤️ by Ertuğrul Mutlu
+Built by Ertugrul Mutlu.
