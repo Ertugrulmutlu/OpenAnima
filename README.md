@@ -24,6 +24,12 @@
 
 ---
 
+## Version / Release status
+
+OpenAnima is preparing for `v1.0.0-rc1`. The package version is defined in `openanima_app/version.py` and exposed as `openanima_app.__version__`.
+
+---
+
 ## 🎬 Demo
 
 > OpenAnima can turn your desktop into a small animated scene using game-style assets.

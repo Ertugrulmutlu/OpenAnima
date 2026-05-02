@@ -1,0 +1,53 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments and local interpreters
+.venv/
+venv/
+env/
+ENV/
+Lib/
+Scripts/
+Include/
+pyvenv.cfg
+
+# Packaging and build output
+build/
+dist/
+*.egg-info/
+.eggs/
+*.spec
+
+# PyInstaller output and Windows binaries
+*.exe
+*.msi
+*.dll
+*.pyd
+*.manifest
+
+# Local configuration and runtime state
+config.json
+*.local.json
+*.log
+logs/
+
+# Temporary folders
+tmp/
+temp/
+test_tmp/
+scratch/
+
+# Editor and OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
