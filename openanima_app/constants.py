@@ -13,12 +13,15 @@ def resource_path(relative_path):
     return base_path / relative_path
 
 
+BUNDLE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+
 if getattr(sys, "frozen", False):
     BASE_DIR = Path(sys.executable).parent
 else:
     BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEFAULT_ASSETS_DIR = BASE_DIR / "assets"
+BUNDLED_ASSETS_DIR = resource_path("assets")
 CONFIG_PATH = BASE_DIR / "config.json"
 LOG_DIR = BASE_DIR / "logs"
 LOG_PATH = LOG_DIR / "openanima.log"

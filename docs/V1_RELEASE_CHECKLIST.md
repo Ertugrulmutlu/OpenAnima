@@ -29,8 +29,12 @@
 ## Packaging
 
 - Build the Windows app from a clean checkout.
+- Build with `pyinstaller OpenAnima.spec`.
 - Verify the generated executable launches on a clean Windows environment.
 - Confirm bundled assets, icons, and docs are present.
+- Confirm `config.json` and `logs/openanima.log` are created beside `OpenAnima.exe`.
+- Confirm the Diagnostics tab shows the packaged config path, asset root, and log path.
+- Confirm the tray menu can show overlays, disable click-through, and bring overlays to center.
 - Confirm no local `config.json`, caches, or temporary files are included in the distributable.
 
 ## Release

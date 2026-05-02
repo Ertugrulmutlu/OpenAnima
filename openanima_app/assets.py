@@ -9,7 +9,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QImageReader, QMovie, QPixmap
 
-from .constants import BASE_DIR, CONFIG_PATH, DEFAULT_ASSETS_DIR, THUMBNAIL_SIZE
+from .constants import BASE_DIR, BUNDLED_ASSETS_DIR, CONFIG_PATH, DEFAULT_ASSETS_DIR, THUMBNAIL_SIZE
 from . import state
 from .logging_utils import log_warning
 
@@ -67,6 +67,22 @@ class AssetDefinition:
 
 def ensure_assets_dir():
     state.ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def seed_default_assets_dir():
+    if state.ASSETS_DIR != DEFAULT_ASSETS_DIR:
+        return
+    if BUNDLED_ASSETS_DIR.resolve() == DEFAULT_ASSETS_DIR.resolve():
+        return
+    if not BUNDLED_ASSETS_DIR.exists():
+        return
+    if DEFAULT_ASSETS_DIR.exists() and any(DEFAULT_ASSETS_DIR.iterdir()):
+        return
+
+    try:
+        shutil.copytree(BUNDLED_ASSETS_DIR, DEFAULT_ASSETS_DIR, dirs_exist_ok=True)
+    except OSError as exc:
+        log_warning("Could not seed bundled assets into runtime assets folder: %s", exc)
 
 
 def stored_path(path):

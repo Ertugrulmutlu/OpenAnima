@@ -522,7 +522,7 @@ python main.py
 ## Build EXE
 
 ```bash
-pyinstaller --noconfirm --onefile --windowed --name OpenAnima --icon=icon.ico --add-data "icon.ico;." main.py
+pyinstaller OpenAnima.spec
 ```
 
 Output:
@@ -530,6 +530,8 @@ Output:
 ```txt
 dist/OpenAnima.exe
 ```
+
+The spec bundles `icon.ico`, `icon.png`, `assets/`, `images/`, `README.md`, and `LICENSE`. Runtime files such as `config.json` and `logs/` are created beside the executable.
 
 ---
 

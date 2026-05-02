@@ -5,7 +5,7 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QStyle, QSystemTrayIcon
 
 from . import state
-from .assets import assets_for_pack, config_warning, import_gif_to_assets, load_config, resolved_path, save_config
+from .assets import assets_for_pack, config_warning, import_gif_to_assets, load_config, resolved_path, save_config, seed_default_assets_dir
 from .constants import DARK_STYLE, DEFAULT_GIF, ICON_PATH
 from .control_panel import ControlPanel
 from .logging_utils import configure_logging, log_info
@@ -64,6 +64,7 @@ def main():
     configure_logging()
     log_info("OpenAnima startup")
     configs = load_config()
+    seed_default_assets_dir()
     state.ASSETS_DIR.mkdir(parents=True, exist_ok=True)
     if DEFAULT_GIF.exists():
         import_gif_to_assets(DEFAULT_GIF, reuse_existing=True)
