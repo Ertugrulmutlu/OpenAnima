@@ -46,6 +46,8 @@ tmp/
 temp/
 test_tmp/
 .test_tmp/
+.test_runtime_tmp/
+pytest_tmp/
 scratch/
 
 # Editor and OS files

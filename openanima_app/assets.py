@@ -11,6 +11,7 @@ from PySide6.QtGui import QIcon, QImageReader, QMovie, QPixmap
 
 from .constants import BASE_DIR, CONFIG_PATH, DEFAULT_ASSETS_DIR, THUMBNAIL_SIZE
 from . import state
+from .logging_utils import log_warning
 
 
 class AssetType:
@@ -82,8 +83,7 @@ def resolved_path(path):
 
 
 def config_warning(message):
-    state.CONFIG_WARNINGS.append(message)
-    print(f"Warning: {message}")
+    log_warning(message)
 
 
 def is_inside_assets(path):
@@ -141,7 +141,7 @@ def load_metadata(folder):
     try:
         data = json.loads(metadata_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        print(f"Warning: invalid asset metadata {metadata_path}: {exc}")
+        log_warning("Invalid asset metadata %s: %s", metadata_path, exc)
         return {}
 
     return data if isinstance(data, dict) else {}
@@ -303,6 +303,7 @@ def assets_for_pack(pack_dir):
 def import_asset_to_assets(source, pack_dir=None, reuse_existing=False):
     source = Path(source).resolve()
     if not source.exists() or not source.is_file() or not is_supported_asset_file(source):
+        log_warning("Unsupported asset import skipped: %s", source)
         return None
 
     ensure_assets_dir()
@@ -322,6 +323,7 @@ def import_asset_to_assets(source, pack_dir=None, reuse_existing=False):
 def import_folder_to_assets(source, pack_dir=None, reuse_existing=False):
     source = Path(source).resolve()
     if not source.exists() or not source.is_dir() or detect_asset(source) is None:
+        log_warning("Unsupported asset folder import skipped: %s", source)
         return None
 
     ensure_assets_dir()
@@ -504,4 +506,7 @@ def save_config(windows=None):
         "asset_root": stored_path(state.ASSETS_DIR),
         "windows": [window.to_config() for window in windows],
     }
-    atomic_write_json(CONFIG_PATH, data)
+    try:
+        atomic_write_json(CONFIG_PATH, data)
+    except OSError as exc:
+        config_warning(f"Could not save config: {exc}")

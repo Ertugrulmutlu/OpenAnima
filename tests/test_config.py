@@ -1,4 +1,7 @@
 import json
+import shutil
+import uuid
+from pathlib import Path
 
 from openanima_app import state
 from openanima_app.assets import (
@@ -10,23 +13,37 @@ from openanima_app.assets import (
 from openanima_app.constants import DEFAULT_ASSETS_DIR
 
 
-def test_missing_config_file_uses_defaults(tmp_path):
-    config = load_config_data(tmp_path / "config.json")
+def runtime_dir():
+    path = Path(".test_runtime_tmp") / uuid.uuid4().hex
+    path.mkdir(parents=True)
+    return path
+
+
+def test_missing_config_file_uses_defaults():
+    root = runtime_dir()
+    try:
+        config = load_config_data(root / "config.json")
+    finally:
+        shutil.rmtree(root)
 
     assert config["schema_version"] == CONFIG_SCHEMA_VERSION
     assert config["windows"] == []
     assert state.ASSETS_DIR == DEFAULT_ASSETS_DIR
 
 
-def test_invalid_json_is_backed_up_and_uses_defaults(tmp_path):
-    config_path = tmp_path / "config.json"
-    config_path.write_text("{broken", encoding="utf-8")
+def test_invalid_json_is_backed_up_and_uses_defaults():
+    root = runtime_dir()
+    try:
+        config_path = root / "config.json"
+        config_path.write_text("{broken", encoding="utf-8")
 
-    config = load_config_data(config_path)
+        config = load_config_data(config_path)
 
-    assert config["windows"] == []
-    assert list(tmp_path.glob("config.corrupt.*.json"))
-    assert config_path.read_text(encoding="utf-8") == "{broken"
+        assert config["windows"] == []
+        assert list(root.glob("config.corrupt.*.json"))
+        assert config_path.read_text(encoding="utf-8") == "{broken"
+    finally:
+        shutil.rmtree(root)
 
 
 def test_partial_config_uses_defaults_and_keeps_valid_windows():
@@ -49,23 +66,31 @@ def test_partial_config_uses_defaults_and_keeps_valid_windows():
     ]
 
 
-def test_atomic_save_creates_valid_json(tmp_path):
-    config_path = tmp_path / "config.json"
+def test_atomic_save_creates_valid_json():
+    root = runtime_dir()
+    try:
+        config_path = root / "config.json"
 
-    atomic_write_json(config_path, {"schema_version": CONFIG_SCHEMA_VERSION, "windows": []})
+        atomic_write_json(config_path, {"schema_version": CONFIG_SCHEMA_VERSION, "windows": []})
 
-    assert json.loads(config_path.read_text(encoding="utf-8")) == {
-        "schema_version": CONFIG_SCHEMA_VERSION,
-        "windows": [],
-    }
-    assert not list(tmp_path.glob("*.tmp"))
+        assert json.loads(config_path.read_text(encoding="utf-8")) == {
+            "schema_version": CONFIG_SCHEMA_VERSION,
+            "windows": [],
+        }
+        assert not list(root.glob("*.tmp"))
+    finally:
+        shutil.rmtree(root)
 
 
-def test_old_config_without_schema_version_still_loads(tmp_path):
-    config_path = tmp_path / "config.json"
-    config_path.write_text(json.dumps({"asset_root": "assets", "windows": [{"path": "assets/a.gif"}]}), encoding="utf-8")
+def test_old_config_without_schema_version_still_loads():
+    root = runtime_dir()
+    try:
+        config_path = root / "config.json"
+        config_path.write_text(json.dumps({"asset_root": "assets", "windows": [{"path": "assets/a.gif"}]}), encoding="utf-8")
 
-    config = load_config_data(config_path)
+        config = load_config_data(config_path)
 
-    assert config["schema_version"] == CONFIG_SCHEMA_VERSION
-    assert config["windows"] == [{"path": "assets/a.gif"}]
+        assert config["schema_version"] == CONFIG_SCHEMA_VERSION
+        assert config["windows"] == [{"path": "assets/a.gif"}]
+    finally:
+        shutil.rmtree(root)

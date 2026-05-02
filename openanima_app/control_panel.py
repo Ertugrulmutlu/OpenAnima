@@ -1,9 +1,10 @@
 import json
 from pathlib import Path
 
-from PySide6.QtCore import QSize, Qt
-from PySide6.QtGui import QAction
+from PySide6.QtCore import QSize, Qt, QUrl
+from PySide6.QtGui import QAction, QDesktopServices
 from PySide6.QtWidgets import (
+    QApplication,
     QCheckBox,
     QComboBox,
     QDialog,
@@ -20,6 +21,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QSlider,
+    QTextEdit,
     QTabWidget,
     QVBoxLayout,
     QWidget,
@@ -43,9 +45,11 @@ from .assets import (
     make_thumbnail,
     save_config,
 )
-from .constants import BASE_DIR, THUMBNAIL_SIZE
+from .constants import BASE_DIR, CONFIG_PATH, LOG_DIR, LOG_PATH, THUMBNAIL_SIZE
+from .logging_utils import log_warning, recent_warnings_and_errors
 from .overlay import add_window, confirm_exit_or_tray
 from .startup import set_startup_enabled, startup_enabled
+from .version import __version__
 
 
 class ControlPanel(QWidget):
@@ -71,10 +75,13 @@ class ControlPanel(QWidget):
 
         self.build_library_tab()
         self.build_active_tab()
+        self.build_diagnostics_tab()
         self.build_editor_tab()
+        self.tabs.currentChanged.connect(lambda index: self.refresh_diagnostics())
 
         self.refresh_packs()
         self.refresh_active()
+        self.refresh_diagnostics()
         self.load_editor(None)
 
     def panel(self):
@@ -204,6 +211,64 @@ class ControlPanel(QWidget):
         layout.addLayout(buttons)
         layout.addWidget(self.startup_check)
         self.tabs.addTab(tab, "Active")
+
+    def build_diagnostics_tab(self):
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(12)
+
+        title = QLabel("Diagnostics")
+        title.setObjectName("SectionTitle")
+        subtitle = QLabel("Review runtime paths, active overlays, and recent warnings.")
+        subtitle.setObjectName("SubtleLabel")
+
+        info_panel = self.panel()
+        info_layout = QVBoxLayout(info_panel)
+        info_layout.setContentsMargins(14, 14, 14, 14)
+        info_layout.setSpacing(8)
+
+        self.diagnostics_version = QLabel()
+        self.diagnostics_config_path = QLabel()
+        self.diagnostics_asset_root = QLabel()
+        self.diagnostics_log_path = QLabel()
+        self.diagnostics_overlay_count = QLabel()
+        for label in (
+            self.diagnostics_version,
+            self.diagnostics_config_path,
+            self.diagnostics_asset_root,
+            self.diagnostics_log_path,
+            self.diagnostics_overlay_count,
+        ):
+            label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            label.setWordWrap(True)
+            info_layout.addWidget(label)
+
+        warnings_label = QLabel("Recent warnings/errors")
+        warnings_label.setObjectName("SubtleLabel")
+        self.diagnostics_recent = QTextEdit()
+        self.diagnostics_recent.setReadOnly(True)
+        self.diagnostics_recent.setMinimumHeight(160)
+
+        buttons = QHBoxLayout()
+        open_logs_button = QPushButton("Open Logs Folder")
+        copy_button = QPushButton("Copy Diagnostic Info")
+        refresh_button = QPushButton("Refresh")
+        open_logs_button.clicked.connect(self.open_logs_folder)
+        copy_button.clicked.connect(self.copy_diagnostics)
+        refresh_button.clicked.connect(self.refresh_diagnostics)
+        buttons.addWidget(open_logs_button)
+        buttons.addWidget(copy_button)
+        buttons.addStretch()
+        buttons.addWidget(refresh_button)
+
+        layout.addWidget(title)
+        layout.addWidget(subtitle)
+        layout.addWidget(info_panel)
+        layout.addWidget(warnings_label)
+        layout.addWidget(self.diagnostics_recent, 1)
+        layout.addLayout(buttons)
+        self.tabs.addTab(tab, "Diagnostics")
 
     def build_editor_tab(self):
         self.editor_tab = QWidget()
@@ -384,6 +449,53 @@ class ControlPanel(QWidget):
             self.selected_window = None
             self.load_editor(None)
             self.hide_editor_tab()
+        self.refresh_diagnostics()
+
+    def refresh_diagnostics(self):
+        if not hasattr(self, "diagnostics_recent"):
+            return
+
+        self.diagnostics_version.setText(f"Version: {__version__}")
+        self.diagnostics_config_path.setText(f"Config: {CONFIG_PATH}")
+        self.diagnostics_asset_root.setText(f"Assets: {state.ASSETS_DIR}")
+        self.diagnostics_log_path.setText(f"Log file: {LOG_PATH}")
+        self.diagnostics_overlay_count.setText(f"Active overlays: {len(state.WINDOWS)}")
+
+        recent = recent_warnings_and_errors()
+        if recent:
+            lines = [f"{item['level']}: {item['message']}" for item in recent[-30:]]
+            self.diagnostics_recent.setPlainText("\n".join(lines))
+        else:
+            self.diagnostics_recent.setPlainText("No warnings or errors recorded this session.")
+
+    def diagnostics_text(self):
+        recent = recent_warnings_and_errors()
+        warnings = "\n".join(f"- {item['level']}: {item['message']}" for item in recent[-30:])
+        if not warnings:
+            warnings = "- None recorded this session."
+        return "\n".join(
+            [
+                f"OpenAnima version: {__version__}",
+                f"Config path: {CONFIG_PATH}",
+                f"Asset root: {state.ASSETS_DIR}",
+                f"Log file: {LOG_PATH}",
+                f"Active overlays: {len(state.WINDOWS)}",
+                "Recent warnings/errors:",
+                warnings,
+            ]
+        )
+
+    def open_logs_folder(self):
+        try:
+            LOG_DIR.mkdir(parents=True, exist_ok=True)
+            if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(LOG_DIR))):
+                raise OSError(f"Could not open {LOG_DIR}")
+        except Exception as exc:
+            log_warning("Unable to open logs folder: %s", exc)
+            QMessageBox.warning(self, "Diagnostics", "Unable to open the logs folder.")
+
+    def copy_diagnostics(self):
+        QApplication.clipboard().setText(self.diagnostics_text())
 
     def window_from_current_item(self):
         item = self.active_list.currentItem()
@@ -460,6 +572,7 @@ class ControlPanel(QWidget):
         analyzer = AssetAnalyzer()
         guesses = analyzer.analyze_path(path)
         if not guesses:
+            log_warning("No supported asset type could be guessed for import path: %s", path)
             QMessageBox.warning(self, "Import Asset", "No supported asset type could be guessed for this path.")
             return
 
@@ -469,6 +582,7 @@ class ControlPanel(QWidget):
 
         imported = self.create_import_from_setup(Path(path), dialog.metadata(), dialog.asset_name())
         if imported is None:
+            log_warning("Selected asset could not be imported: %s", path)
             QMessageBox.warning(self, "Import Asset", "The selected asset could not be imported.")
             return
 
@@ -535,6 +649,7 @@ class ControlPanel(QWidget):
         new_metadata = dialog.metadata()
         saved_path = self.save_asset_metadata(path, new_metadata, dialog.asset_name())
         if saved_path is None:
+            log_warning("Asset metadata could not be saved: %s", path)
             QMessageBox.warning(self, "Configure Asset", "This asset metadata could not be saved.")
             return
 
@@ -552,6 +667,7 @@ class ControlPanel(QWidget):
             asset = detect_asset(path)
             errors = validate_asset_metadata(asset) if asset is not None else ["Unable to read saved asset metadata."]
             if errors:
+                log_warning("Saved asset metadata has validation errors for %s: %s", path, "; ".join(errors))
                 QMessageBox.warning(self, "Configure Asset", "\n".join(errors))
             return path
 
@@ -584,6 +700,7 @@ class ControlPanel(QWidget):
 
         asset = detect_asset(asset_path)
         if asset is None:
+            log_warning("Unable to reload asset definition: %s", asset_path)
             QMessageBox.warning(self, "Reload Asset", "Unable to reload this asset definition.")
             return
 
@@ -592,6 +709,7 @@ class ControlPanel(QWidget):
             if not window.reload_asset_definition(asset):
                 failed.append(window.asset.name)
         if failed:
+            log_warning("Some overlays could not be reloaded for asset %s: %s", asset_path, ", ".join(failed))
             QMessageBox.warning(self, "Reload Asset", "Some overlays could not be reloaded and were kept unchanged.")
         self.refresh_active()
         if self.selected_window in state.WINDOWS:
@@ -747,11 +865,12 @@ class ControlPanel(QWidget):
             try:
                 self.selected_window.set_layer_value(layer_name, slider_value / 100)
             except Exception as exc:
-                print(f"Warning: unable to update composite layer value {layer_name}: {exc}")
+                log_warning("Unable to update composite layer value %s: %s", layer_name, exc)
 
     def editor_animation_changed(self, animation_name):
         if not self.loading_editor and self.selected_window in state.WINDOWS:
             if not self.selected_window.set_animation(animation_name):
+                log_warning("Unable to switch to animation: %s", animation_name)
                 QMessageBox.warning(self, "Animation", f"Unable to switch to animation: {animation_name}")
 
     def reload_selected_asset(self):
@@ -759,9 +878,11 @@ class ControlPanel(QWidget):
             return
         asset = detect_asset(self.selected_window.asset_path)
         if asset is None:
+            log_warning("Unable to reload selected asset definition: %s", self.selected_window.asset_path)
             QMessageBox.warning(self, "Reload Asset", "Unable to reload this asset definition.")
             return
         if not self.selected_window.reload_asset_definition(asset):
+            log_warning("Reload failed for selected asset: %s", self.selected_window.asset_path)
             QMessageBox.warning(self, "Reload Asset", "Reload failed. The running overlay was kept unchanged.")
             return
         self.load_editor(self.selected_window)

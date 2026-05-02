@@ -6,6 +6,7 @@
 - Remove generated artifacts from git tracking if they were committed previously.
 - Check `git status --short` before preparing the release branch.
 - Verify `config.json` recovery by testing missing, corrupt, partial, and old-schema configs.
+- Confirm `logs/openanima.log` is created and receives startup, shutdown, config, asset, and overlay warnings.
 
 ## Version And Metadata
 
@@ -21,6 +22,7 @@
 - Run available tests or checks.
 - Launch the app with `python main.py` and smoke test core desktop overlay workflows.
 - Corrupt a temporary copy of `config.json` and confirm OpenAnima starts with defaults while preserving a `config.corrupt.*.json` backup.
+- Open the Diagnostics tab, verify paths and active overlay count, open the logs folder, and copy diagnostic info to the clipboard.
 
 ## Packaging
 

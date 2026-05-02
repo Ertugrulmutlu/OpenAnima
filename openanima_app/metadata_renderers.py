@@ -3,6 +3,8 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QRect, QTimer, Qt, Signal
 from PySide6.QtGui import QImage, QPainter, QPixmap
 
+from .logging_utils import log_warning
+
 
 class SpriteAnimationPlayer(QObject):
     pixmap_changed = Signal(QPixmap)
@@ -57,12 +59,12 @@ class SpriteAnimationPlayer(QObject):
 def load_sprite_strip_frames(asset_folder: Path, metadata: dict) -> list[QPixmap]:
     image_path = _metadata_image_path(asset_folder, metadata)
     if image_path is None:
-        print(f"Warning: sprite_strip asset is missing image metadata: {asset_folder}")
+        log_warning("Sprite strip asset is missing image metadata: %s", asset_folder)
         return []
 
     sheet = QPixmap(str(image_path))
     if sheet.isNull():
-        print(f"Warning: unable to load sprite strip image: {image_path}")
+        log_warning("Unable to load sprite strip image: %s", image_path)
         return []
 
     result = sprite_strip_frames_from_pixmap(sheet, metadata, asset_name=str(asset_folder))
@@ -74,14 +76,15 @@ def sprite_strip_frames_from_pixmap(sheet: QPixmap, metadata: dict, asset_name="
     direction = str(metadata.get("direction") or "horizontal").lower()
     frame_width, frame_height, error = sprite_strip_frame_size(sheet.width(), sheet.height(), metadata)
     if error:
-        print(error)
+        log_warning("%s", error)
         return []
 
     crop_left, crop_top, crop_right, crop_bottom = sprite_strip_crop_values(metadata)
     crop_width = frame_width - crop_left - crop_right
     crop_height = frame_height - crop_top - crop_bottom
     if crop_width < 1 or crop_height < 1:
-        print(
+        log_warning(
+            "%s",
             sprite_strip_error_message(
                 sheet.width(),
                 sheet.height(),
@@ -221,18 +224,18 @@ def _alpha_bbox(image: QImage):
 def load_spritesheet_frames(asset_folder: Path, metadata: dict, animation_name=None) -> tuple[list[QPixmap], int, bool, str | None]:
     image_path = _metadata_image_path(asset_folder, metadata)
     if image_path is None:
-        print(f"Warning: spritesheet asset is missing image metadata: {asset_folder}")
+        log_warning("Spritesheet asset is missing image metadata: %s", asset_folder)
         return [], _metadata_fps(metadata, None), True, None
 
     sheet = QPixmap(str(image_path))
     if sheet.isNull():
-        print(f"Warning: unable to load spritesheet image: {image_path}")
+        log_warning("Unable to load spritesheet image: %s", image_path)
         return [], _metadata_fps(metadata, None), True, None
 
     frame_width = _positive_int(metadata.get("frame_width"), 0)
     frame_height = _positive_int(metadata.get("frame_height"), 0)
     if frame_width < 1 or frame_height < 1:
-        print(f"Warning: spritesheet asset has invalid frame dimensions: {asset_folder}")
+        log_warning("Spritesheet asset has invalid frame dimensions: %s", asset_folder)
         return [], _metadata_fps(metadata, None), True, None
 
     selected_name, animation = _selected_animation(metadata, animation_name)
@@ -246,7 +249,7 @@ def load_spritesheet_frames(asset_folder: Path, metadata: dict, animation_name=N
         if rect is None:
             continue
         if rect.right() >= sheet.width() or rect.bottom() >= sheet.height():
-            print(f"Warning: spritesheet frame outside image bounds skipped: {image_path} {rect}")
+            log_warning("Spritesheet frame outside image bounds skipped: %s %s", image_path, rect)
             continue
         frame = sheet.copy(rect)
         if not frame.isNull():
@@ -273,12 +276,12 @@ class CompositeUIRenderer:
                 continue
             image_name = layer.get("image")
             if not image_name:
-                print(f"Warning: composite_ui layer is missing image metadata: {self.asset_folder}")
+                log_warning("Composite UI layer is missing image metadata: %s", self.asset_folder)
                 continue
             image_path = (self.asset_folder / str(image_name)).resolve()
             pixmap = QPixmap(str(image_path))
             if pixmap.isNull():
-                print(f"Warning: composite_ui layer image skipped: {image_path}")
+                log_warning("Composite UI layer image skipped: %s", image_path)
                 continue
             x = _int(layer.get("x"), 0)
             y = _int(layer.get("y"), 0)

@@ -23,6 +23,7 @@ from .metadata_renderers import (
     load_spritesheet_frames,
 )
 from . import state
+from .logging_utils import log_info, log_warning
 
 
 def remove_native_border(window):
@@ -53,6 +54,7 @@ def refresh_control_panel():
 
 def exit_app():
     state.EXITING = True
+    log_info("OpenAnima exit requested")
     save_config()
     QApplication.instance().quit()
 
@@ -92,17 +94,18 @@ def add_window(asset_path, config=None, save=True):
         asset = detect_asset(imported_path) if imported_path is not None else None
 
     if asset is None:
-        print(f"Warning: unsupported or missing asset skipped: {asset_path}")
+        log_warning("Unsupported or missing asset skipped: %s", asset_path)
         return None
 
     try:
         window = OverlayWindow(asset, config or {})
     except ValueError as exc:
-        print(f"Warning: {exc}")
+        log_warning("%s", exc)
         return None
     state.WINDOWS.append(window)
     window.show()
     remove_native_border(window)
+    log_info("Overlay created: %s", window.asset_path)
     if save:
         save_config()
     refresh_control_panel()
@@ -160,7 +163,7 @@ class OverlayWindow(QWidget):
         errors = validate_asset_metadata(self.asset)
         if errors:
             for error in errors:
-                print(f"Warning: {self.asset.path}: {error}")
+                log_warning("%s: %s", self.asset.path, error)
             return False
 
         if self.asset_type == AssetType.GIF:
@@ -181,7 +184,7 @@ class OverlayWindow(QWidget):
         if self.asset_type == AssetType.STATIC_IMAGE:
             self.static_pixmap = QPixmap(str(self.asset_path))
             if self.static_pixmap.isNull():
-                print(f"Warning: unreadable image skipped: {self.asset_path}")
+                log_warning("Unreadable image skipped: %s", self.asset_path)
                 return False
             self.current_pixmap = self.static_pixmap
             self.base_size = self.static_pixmap.size()
@@ -197,7 +200,7 @@ class OverlayWindow(QWidget):
             self.frame_player.set_speed(self.speed)
             self.frame_player.pixmap_changed.connect(self.update_from_frame_player)
             if not self.frame_player.frames:
-                print(f"Warning: no readable frames in asset skipped: {self.asset_path}")
+                log_warning("No readable frames in asset skipped: %s", self.asset_path)
                 return False
             self.current_pixmap = self.frame_player.frames[0]
             self.base_size = self.current_pixmap.size()
@@ -208,7 +211,7 @@ class OverlayWindow(QWidget):
             metadata = self.asset.metadata or {}
             frames = load_sprite_strip_frames(self.asset_path, metadata)
             if not frames:
-                print(f"Warning: no readable sprite strip frames in asset skipped: {self.asset_path}")
+                log_warning("No readable sprite strip frames in asset skipped: %s", self.asset_path)
                 return False
             fps = metadata.get("fps", self.asset.fps or 8)
             loop = bool(metadata.get("loop", True))
@@ -224,7 +227,7 @@ class OverlayWindow(QWidget):
             metadata = self.asset.metadata or {}
             frames, fps, loop, selected_name = load_spritesheet_frames(self.asset_path, metadata, self.current_animation)
             if not frames:
-                print(f"Warning: no readable spritesheet frames in asset skipped: {self.asset_path}")
+                log_warning("No readable spritesheet frames in asset skipped: %s", self.asset_path)
                 return False
             self.current_animation = selected_name
             self.sprite_player = SpriteAnimationPlayer(frames, fps=fps, loop=loop, parent=self)
@@ -239,7 +242,7 @@ class OverlayWindow(QWidget):
             metadata = self._composite_metadata_with_runtime_values()
             self.composite_renderer = CompositeUIRenderer(self.asset_path, metadata)
             if not self.composite_renderer.layers:
-                print(f"Warning: no readable composite_ui layers in asset skipped: {self.asset_path}")
+                log_warning("No readable composite_ui layers in asset skipped: %s", self.asset_path)
                 return False
             self.current_pixmap = self.composite_renderer.render()
             self.base_size = self.current_pixmap.size()
@@ -416,9 +419,11 @@ class OverlayWindow(QWidget):
         self.current_pixmap = QPixmap()
         if not self.load_asset_content():
             self._restore_renderer_state(old_state)
+            log_warning("Overlay reload failed: %s", self.asset_path)
             return False
         self.start_playback()
         self.update()
+        log_info("Overlay reloaded: %s", self.asset_path)
         return True
 
     def stop_playback(self):
@@ -645,6 +650,7 @@ class OverlayWindow(QWidget):
         save_config()
         if self in state.WINDOWS:
             state.WINDOWS.remove(self)
+        log_info("Overlay removed: %s", self.asset_path)
         save_config()
         refresh_control_panel()
         super().closeEvent(event)

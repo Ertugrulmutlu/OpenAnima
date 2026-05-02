@@ -20,6 +20,8 @@ else:
 
 DEFAULT_ASSETS_DIR = BASE_DIR / "assets"
 CONFIG_PATH = BASE_DIR / "config.json"
+LOG_DIR = BASE_DIR / "logs"
+LOG_PATH = LOG_DIR / "openanima.log"
 DEFAULT_GIF = BASE_DIR / "overlay.gif"
 ICON_PATH = resource_path("icon.ico")
 THUMBNAIL_SIZE = QSize(96, 96)

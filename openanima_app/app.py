@@ -8,6 +8,7 @@ from . import state
 from .assets import assets_for_pack, config_warning, import_gif_to_assets, load_config, resolved_path, save_config
 from .constants import DARK_STYLE, DEFAULT_GIF, ICON_PATH
 from .control_panel import ControlPanel
+from .logging_utils import configure_logging, log_info
 from .overlay import add_window, exit_app, refresh_control_panel
 
 
@@ -44,6 +45,8 @@ def create_tray_icon(app, app_icon):
 
 
 def main():
+    configure_logging()
+    log_info("OpenAnima startup")
     configs = load_config()
     state.ASSETS_DIR.mkdir(parents=True, exist_ok=True)
     if DEFAULT_GIF.exists():
@@ -89,4 +92,6 @@ def main():
                 add_window(assets[0].path)
 
     refresh_control_panel()
-    sys.exit(app.exec())
+    exit_code = app.exec()
+    log_info("OpenAnima shutdown")
+    sys.exit(exit_code)
