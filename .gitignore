@@ -23,7 +23,9 @@ build/
 dist/
 *.egg-info/
 .eggs/
-*.spec
+
+# Keep OpenAnima.spec tracked for PyInstaller builds
+*.spec~
 
 # PyInstaller output and Windows binaries
 *.exe
