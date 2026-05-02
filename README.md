@@ -15,7 +15,7 @@
 <p align="center">
   <a href="https://ertugrulmutlu.github.io/OpenAnima/"><strong>Website</strong></a>
   |
-  <a href="https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview"><strong>Latest Published Release</strong></a>
+  <a href="https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v1.0.0-rc1"><strong>Latest Published Release</strong></a>
   |
   <a href="https://ertugrulmutlu.itch.io/openanima"><strong>itch.io</strong></a>
   |
@@ -65,10 +65,8 @@ Each overlay can be moved, scaled, hidden, locked, made click-through, kept on t
 
 The latest published preview build is available here:
 
-* [OpenAnima v0.2 Preview Release](https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v0.2.0-preview)
+* [OpenAnima v1.0-rc1 Release](https://github.com/Ertugrulmutlu/OpenAnima/releases/tag/v1.0.0-rc1)
 * [OpenAnima on itch.io](https://ertugrulmutlu.itch.io/openanima)
-
-The `v1.0.0-rc1` build is being prepared.
 
 ### Run
 
