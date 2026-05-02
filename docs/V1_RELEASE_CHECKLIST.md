@@ -5,6 +5,7 @@
 - Confirm `.gitignore` excludes local virtual environments, Python caches, build outputs, PyInstaller artifacts, local configuration, and Windows binaries.
 - Remove generated artifacts from git tracking if they were committed previously.
 - Check `git status --short` before preparing the release branch.
+- Verify `config.json` recovery by testing missing, corrupt, partial, and old-schema configs.
 
 ## Version And Metadata
 
@@ -19,6 +20,7 @@
 - Run `python -c "import openanima_app; print(openanima_app.__version__)"`.
 - Run available tests or checks.
 - Launch the app with `python main.py` and smoke test core desktop overlay workflows.
+- Corrupt a temporary copy of `config.json` and confirm OpenAnima starts with defaults while preserving a `config.corrupt.*.json` backup.
 
 ## Packaging
 

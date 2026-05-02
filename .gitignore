@@ -38,12 +38,14 @@ dist/
 config.json
 *.local.json
 *.log
+*.tmp
 logs/
 
 # Temporary folders
 tmp/
 temp/
 test_tmp/
+.test_tmp/
 scratch/
 
 # Editor and OS files

@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QPoint, QSize, Qt
+from PySide6.QtCore import QPoint, QRect, QSize, Qt
 from PySide6.QtGui import QAction, QImageReader, QMovie, QPainter, QPixmap
 from PySide6.QtWidgets import QApplication, QFileDialog, QMenu, QMessageBox, QWidget
 
@@ -121,9 +121,9 @@ class OverlayWindow(QWidget):
         self.locked = bool(config.get("locked", False))
         self.always_on_top = bool(config.get("always_on_top", True))
         self.click_through = bool(config.get("click_through", False))
-        self.scale = int(config.get("scale", 100))
-        self.opacity = int(config.get("opacity", 100))
-        self.speed = int(config.get("speed", 100))
+        self.scale = self.config_int(config, "scale", 100)
+        self.opacity = self.config_int(config, "opacity", 100)
+        self.speed = self.config_int(config, "speed", 100)
         self.drag_offset = QPoint()
         self.base_size = QSize()
         self.movie = None
@@ -132,8 +132,10 @@ class OverlayWindow(QWidget):
         self.frame_player = None
         self.sprite_player = None
         self.composite_renderer = None
-        self.layer_values = dict(config.get("layer_values") or {})
-        self.current_animation = config.get("current_animation")
+        layer_values = config.get("layer_values")
+        self.layer_values = dict(layer_values) if isinstance(layer_values, dict) else {}
+        current_animation = config.get("current_animation")
+        self.current_animation = current_animation if isinstance(current_animation, str) else None
 
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setAttribute(Qt.WA_NoSystemBackground, True)
@@ -148,9 +150,9 @@ class OverlayWindow(QWidget):
         self.apply_click_through()
         self.setWindowOpacity(self.opacity / 100)
 
-        x = int(config.get("x", 100))
-        y = int(config.get("y", 100))
-        self.move(self.clamped_position(QPoint(x, y)))
+        x = self.config_int(config, "x", 100)
+        y = self.config_int(config, "y", 100)
+        self.move(self.restored_position(QPoint(x, y)))
 
         self.start_playback()
 
@@ -277,6 +279,37 @@ class OverlayWindow(QWidget):
         screen = QApplication.primaryScreen()
         return screen.availableGeometry() if screen else None
 
+    def visible_screen_geometry(self):
+        screens = QApplication.screens()
+        if not screens:
+            return None
+
+        geometry = QRect()
+        for screen in screens:
+            geometry = geometry.united(screen.availableGeometry()) if geometry.isValid() else screen.availableGeometry()
+        return geometry
+
+    def centered_on_primary_screen(self):
+        geometry = self.available_geometry()
+        if geometry is None:
+            return QPoint(100, 100)
+
+        return QPoint(
+            geometry.left() + max(0, (geometry.width() - max(1, self.width())) // 2),
+            geometry.top() + max(0, (geometry.height() - max(1, self.height())) // 2),
+        )
+
+    def restored_position(self, pos):
+        visible_geometry = self.visible_screen_geometry()
+        if visible_geometry is None:
+            return pos
+
+        window_rect = QRect(pos, self.size())
+        if not window_rect.intersects(visible_geometry):
+            return self.clamped_position(self.centered_on_primary_screen())
+
+        return self.clamped_position(pos)
+
     def clamped_position(self, pos):
         geometry = self.available_geometry()
         if geometry is None:
@@ -287,6 +320,12 @@ class OverlayWindow(QWidget):
         x = min(max(pos.x(), geometry.left()), max_x)
         y = min(max(pos.y(), geometry.top()), max_y)
         return QPoint(x, y)
+
+    def config_int(self, config, key, default):
+        try:
+            return int(config.get(key, default))
+        except (TypeError, ValueError):
+            return default
 
     def update_from_movie(self):
         pixmap = self.movie.currentPixmap()

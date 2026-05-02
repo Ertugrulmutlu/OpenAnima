@@ -1,7 +1,9 @@
 import json
+import os
 import re
 import shutil
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt
@@ -29,6 +31,24 @@ METADATA_ASSET_TYPES = {
     AssetType.SPRITE_STRIP,
     AssetType.SPRITESHEET,
     AssetType.COMPOSITE_UI,
+}
+CONFIG_SCHEMA_VERSION = 1
+WINDOW_CONFIG_KEYS = {
+    "path",
+    "gif_path",
+    "asset_path",
+    "asset_id",
+    "asset_type",
+    "x",
+    "y",
+    "locked",
+    "always_on_top",
+    "click_through",
+    "scale",
+    "opacity",
+    "speed",
+    "layer_values",
+    "current_animation",
 }
 
 
@@ -59,6 +79,11 @@ def stored_path(path):
 def resolved_path(path):
     path = Path(path)
     return path if path.is_absolute() else BASE_DIR / path
+
+
+def config_warning(message):
+    state.CONFIG_WARNINGS.append(message)
+    print(f"Warning: {message}")
 
 
 def is_inside_assets(path):
@@ -355,30 +380,128 @@ def make_thumbnail(asset_or_path):
     return QIcon(pixmap.scaled(THUMBNAIL_SIZE, Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
 
-def load_config():
-    if not CONFIG_PATH.exists():
+def default_config():
+    return {
+        "schema_version": CONFIG_SCHEMA_VERSION,
+        "asset_root": stored_path(DEFAULT_ASSETS_DIR),
+        "windows": [],
+    }
+
+
+def corrupt_config_backup_path(config_path):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    return config_path.with_name(f"{config_path.stem}.corrupt.{timestamp}{config_path.suffix}")
+
+
+def backup_corrupt_config(config_path):
+    backup_path = corrupt_config_backup_path(config_path)
+    try:
+        shutil.copy2(config_path, backup_path)
+        config_warning(f"Invalid config backed up to {backup_path}")
+    except OSError as exc:
+        config_warning(f"Invalid config could not be backed up: {exc}")
+    return backup_path
+
+
+def normalize_window_config(item):
+    if isinstance(item, str):
+        return {"path": item} if item else None
+
+    if not isinstance(item, dict):
+        config_warning("Skipped saved overlay with invalid entry type.")
+        return None
+
+    path_value = item.get("path") or item.get("gif_path") or item.get("asset_path")
+    if not isinstance(path_value, str) or not path_value.strip():
+        config_warning("Skipped saved overlay without a valid asset path.")
+        return None
+
+    normalized = {key: value for key, value in item.items() if key in WINDOW_CONFIG_KEYS}
+    normalized["path"] = path_value
+    return normalized
+
+
+def normalize_config_data(data):
+    if isinstance(data, list):
+        raw_windows = data
+        asset_root = None
+    elif isinstance(data, dict):
+        schema_version = data.get("schema_version", 0)
+        if schema_version not in (0, CONFIG_SCHEMA_VERSION):
+            config_warning(f"Config schema version {schema_version} is newer than supported; attempting safe load.")
+
+        asset_root = data.get("asset_root")
+        raw_windows = data.get("windows", [])
+        if not isinstance(raw_windows, list):
+            config_warning("Config windows field was invalid; starting with no saved overlays.")
+            raw_windows = []
+    else:
+        config_warning("Config root was invalid; starting with safe defaults.")
+        asset_root = None
+        raw_windows = []
+
+    if isinstance(asset_root, str) and asset_root.strip():
+        state.ASSETS_DIR = resolved_path(asset_root).expanduser().resolve()
+    else:
         state.ASSETS_DIR = DEFAULT_ASSETS_DIR
-        return []
+
+    windows = []
+    for item in raw_windows:
+        normalized = normalize_window_config(item)
+        if normalized is not None:
+            windows.append(normalized)
+
+    return {
+        "schema_version": CONFIG_SCHEMA_VERSION,
+        "asset_root": stored_path(state.ASSETS_DIR),
+        "windows": windows,
+    }
+
+
+def load_config_data(config_path=CONFIG_PATH):
+    config_path = Path(config_path)
+    if not config_path.exists():
+        state.ASSETS_DIR = DEFAULT_ASSETS_DIR
+        return default_config()
 
     try:
-        data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return []
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        backup_corrupt_config(config_path)
+        state.ASSETS_DIR = DEFAULT_ASSETS_DIR
+        return default_config()
+    except OSError as exc:
+        config_warning(f"Could not read config: {exc}")
+        state.ASSETS_DIR = DEFAULT_ASSETS_DIR
+        return default_config()
 
-    if isinstance(data, dict):
-        asset_root = data.get("asset_root")
-        state.ASSETS_DIR = resolved_path(asset_root).expanduser().resolve() if asset_root else DEFAULT_ASSETS_DIR
-        windows = data.get("windows", [])
-        return windows if isinstance(windows, list) else []
+    return normalize_config_data(data)
 
-    state.ASSETS_DIR = DEFAULT_ASSETS_DIR
-    return data if isinstance(data, list) else []
+
+def atomic_write_json(path, data):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = path.with_name(f".{path.name}.tmp")
+    content = json.dumps(data, indent=2)
+
+    with temp_path.open("w", encoding="utf-8") as file:
+        file.write(content)
+        file.write("\n")
+        file.flush()
+        os.fsync(file.fileno())
+
+    os.replace(temp_path, path)
+
+
+def load_config():
+    return load_config_data(CONFIG_PATH)["windows"]
 
 
 def save_config(windows=None):
     windows = state.WINDOWS if windows is None else windows
     data = {
+        "schema_version": CONFIG_SCHEMA_VERSION,
         "asset_root": stored_path(state.ASSETS_DIR),
         "windows": [window.to_config() for window in windows],
     }
-    CONFIG_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    atomic_write_json(CONFIG_PATH, data)

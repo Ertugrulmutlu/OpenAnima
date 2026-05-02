@@ -5,7 +5,7 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QStyle, QSystemTrayIcon
 
 from . import state
-from .assets import assets_for_pack, import_gif_to_assets, load_config, resolved_path, save_config
+from .assets import assets_for_pack, config_warning, import_gif_to_assets, load_config, resolved_path, save_config
 from .constants import DARK_STYLE, DEFAULT_GIF, ICON_PATH
 from .control_panel import ControlPanel
 from .overlay import add_window, exit_app, refresh_control_panel
@@ -81,7 +81,7 @@ def main():
             if path.exists():
                 add_window(path, config, save=False)
             else:
-                print(f"Warning: saved asset missing, skipped: {path}")
+                config_warning(f"Saved asset missing, skipped: {path}")
 
         if not state.WINDOWS:
             assets = assets_for_pack(state.ASSETS_DIR)
