@@ -1,6 +1,6 @@
 from PySide6.QtCore import QPoint
 
-from openanima_app import recovery, state
+from openanima_app.runtime import recovery, state
 
 
 class FakeWindow:
@@ -34,7 +34,7 @@ def test_recovery_actions_update_overlay_state(monkeypatch):
     saved = []
     window = FakeWindow()
     state.WINDOWS = [window]
-    monkeypatch.setattr(recovery, "save_config", lambda windows=None: saved.append(windows))
+    monkeypatch.setattr(recovery, "persist_runtime_state", lambda reason, windows=None, force_empty=False: saved.append(reason))
 
     recovery.show_all_overlays()
     recovery.disable_click_through_for_all()
@@ -47,6 +47,11 @@ def test_recovery_actions_update_overlay_state(monkeypatch):
     assert window.click_applied is True
     assert window.locked is False
     assert window.pos == QPoint(100, 100)
-    assert len(saved) == 3
+    assert saved == [
+        "recovery_show_all_overlays",
+        "recovery_disable_click_through",
+        "recovery_unlock_all",
+        "recovery_bring_all_to_center",
+    ]
 
     state.WINDOWS = []

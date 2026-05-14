@@ -1,0 +1,2 @@
+from .panel import ControlPanel
+
