@@ -1,5 +1,5 @@
-from openanima_app import state
-from openanima_app.logging_utils import log_error, log_warning, recent_warnings_and_errors
+from openanima_app.runtime import state
+from openanima_app.runtime.logging import log_error, log_warning, recent_warnings_and_errors
 
 
 def test_warning_is_recorded_for_diagnostics():

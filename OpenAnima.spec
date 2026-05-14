@@ -1,30 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_all
 
-from pathlib import Path
-
-
-ROOT = Path(SPECPATH)
-
-datas = [
-    (str(ROOT / "icon.ico"), "."),
-    (str(ROOT / "icon.png"), "."),
-    (str(ROOT / "README.md"), "."),
-    (str(ROOT / "LICENSE"), "."),
-    (str(ROOT / "assets"), "assets"),
-    (str(ROOT / "images"), "images"),
-]
-
-hiddenimports = [
-    "PySide6.QtCore",
-    "PySide6.QtGui",
-    "PySide6.QtWidgets",
-]
+datas = [('icon.ico', '.')]
+binaries = []
+hiddenimports = []
+tmp_ret = collect_all('openanima_app')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
 a = Analysis(
-    [str(ROOT / "main.py")],
-    pathex=[str(ROOT)],
-    binaries=[],
+    ['main.py'],
+    pathex=['.'],
+    binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
@@ -42,7 +29,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="OpenAnima",
+    name='OpenAnima',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -55,5 +42,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=str(ROOT / "icon.ico"),
+    icon=['icon.ico'],
 )
