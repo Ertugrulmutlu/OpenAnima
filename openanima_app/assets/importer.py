@@ -9,7 +9,12 @@ from .paths import is_inside_assets, is_supported_asset_file, unique_asset_path,
 
 
 def ensure_assets_dir():
-    state.ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        state.ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        log_warning("Could not create runtime assets folder %s: %s", state.ASSETS_DIR, exc)
+        return False
+    return True
 
 
 def seed_default_assets_dir():
@@ -34,7 +39,8 @@ def import_asset_to_assets(source, pack_dir=None, reuse_existing=False):
         log_warning("Unsupported asset import skipped: %s", source)
         return None
 
-    ensure_assets_dir()
+    if not ensure_assets_dir():
+        return None
     if is_inside_assets(source):
         return source
 
@@ -54,7 +60,8 @@ def import_folder_to_assets(source, pack_dir=None, reuse_existing=False):
         log_warning("Unsupported asset folder import skipped: %s", source)
         return None
 
-    ensure_assets_dir()
+    if not ensure_assets_dir():
+        return None
     if is_inside_assets(source):
         return source
 

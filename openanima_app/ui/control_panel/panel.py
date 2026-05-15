@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
 from ...overlay import confirm_exit_or_tray
 from ...runtime import recovery, state
 from ...runtime.logging import log_info, log_warning, recent_warnings_and_errors
-from ...runtime.paths import CONFIG_PATH, LOG_DIR, LOG_PATH
+from ...runtime.paths import APP_DATA_DIR, CONFIG_PATH, LOG_DIR, LOG_PATH
 from ...runtime.session import persist_runtime_state, save_ui_state
 from ...version import __version__
 from . import desktop_page, editor_page, import_workflows, library_page, overlay_cards
@@ -411,6 +411,7 @@ class ControlPanel(QWidget):
             return
 
         self.diagnostics_version.setText(f"Version: {__version__}")
+        self.diagnostics_data_dir.setText(f"Data: {APP_DATA_DIR}")
         self.diagnostics_config_path.setText(f"Config: {CONFIG_PATH}")
         self.diagnostics_asset_root.setText(f"Assets: {state.ASSETS_DIR}")
         self.diagnostics_log_path.setText(f"Log file: {LOG_PATH}")
@@ -431,6 +432,7 @@ class ControlPanel(QWidget):
         return "\n".join(
             [
                 f"OpenAnima version: {__version__}",
+                f"Data directory: {APP_DATA_DIR}",
                 f"Config path: {CONFIG_PATH}",
                 f"Asset root: {state.ASSETS_DIR}",
                 f"Log file: {LOG_PATH}",

@@ -8,6 +8,7 @@ from .paths import LOG_DIR, LOG_PATH
 LOGGER_NAME = "openanima"
 MAX_RECENT_DIAGNOSTICS = 100
 _CONFIGURED = False
+_SETUP_WARNING_PRINTED = False
 
 
 def logger():
@@ -15,7 +16,7 @@ def logger():
 
 
 def configure_logging():
-    global _CONFIGURED
+    global _CONFIGURED, _SETUP_WARNING_PRINTED
     app_logger = logger()
     app_logger.setLevel(logging.INFO)
     app_logger.propagate = False
@@ -36,7 +37,10 @@ def configure_logging():
         app_logger.addHandler(handler)
         _CONFIGURED = True
     except Exception as exc:
-        _record_recent("ERROR", f"Logging setup failed: {exc}")
+        warning = f"Logging setup failed: {exc}"
+        if not _SETUP_WARNING_PRINTED:
+            print(f"OpenAnima warning: {warning}")
+            _SETUP_WARNING_PRINTED = True
 
     return app_logger
 

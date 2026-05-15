@@ -2,12 +2,16 @@ import re
 from pathlib import Path
 
 from ..runtime import state
-from ..runtime.paths import BASE_DIR
+from ..runtime.paths import APP_DATA_DIR, BASE_DIR
 from .constants import SUPPORTED_ASSET_EXTENSIONS, SUPPORTED_IMAGE_EXTENSIONS
 
 
 def stored_path(path):
     path = Path(path).resolve()
+    try:
+        return path.relative_to(APP_DATA_DIR).as_posix()
+    except ValueError:
+        pass
     try:
         return path.relative_to(BASE_DIR).as_posix()
     except ValueError:
@@ -16,7 +20,7 @@ def stored_path(path):
 
 def resolved_path(path):
     path = Path(path).expanduser()
-    return path if path.is_absolute() else BASE_DIR / path
+    return path if path.is_absolute() else APP_DATA_DIR / path
 
 
 def resolve_saved_asset_path(path, asset_root=None):
@@ -27,7 +31,7 @@ def resolve_saved_asset_path(path, asset_root=None):
     roots = []
     if asset_root is not None:
         roots.append(Path(asset_root))
-    roots.extend([state.ASSETS_DIR, BASE_DIR, Path.cwd()])
+    roots.extend([state.ASSETS_DIR, APP_DATA_DIR, BASE_DIR, Path.cwd()])
 
     seen = set()
     fallback = None
@@ -40,7 +44,7 @@ def resolve_saved_asset_path(path, asset_root=None):
         if candidate.exists():
             return candidate
 
-    return fallback or (BASE_DIR / raw_path).resolve()
+    return fallback or (APP_DATA_DIR / raw_path).resolve()
 
 
 def is_inside_assets(path):

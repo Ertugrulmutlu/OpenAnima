@@ -20,12 +20,14 @@ def build_diagnostics_page(panel):
     info_layout.setSpacing(8)
 
     panel.diagnostics_version = QLabel()
+    panel.diagnostics_data_dir = QLabel()
     panel.diagnostics_config_path = QLabel()
     panel.diagnostics_asset_root = QLabel()
     panel.diagnostics_log_path = QLabel()
     panel.diagnostics_overlay_count = QLabel()
     for label in (
         panel.diagnostics_version,
+        panel.diagnostics_data_dir,
         panel.diagnostics_config_path,
         panel.diagnostics_asset_root,
         panel.diagnostics_log_path,

@@ -38,7 +38,8 @@ def scan_assets(root_dir):
 
 
 def assets_for_pack(pack_dir):
-    ensure_assets_dir()
+    if not ensure_assets_dir():
+        return []
     pack_dir = Path(pack_dir).resolve()
     assets = []
     seen = set()
@@ -65,7 +66,8 @@ def assets_for_pack(pack_dir):
 
 
 def asset_packs():
-    ensure_assets_dir()
+    if not ensure_assets_dir():
+        return [("Root assets", state.ASSETS_DIR)]
     packs = [("Root assets", state.ASSETS_DIR)]
     packs.extend((path.name, path) for path in sorted(state.ASSETS_DIR.iterdir()) if path.is_dir())
     return packs
