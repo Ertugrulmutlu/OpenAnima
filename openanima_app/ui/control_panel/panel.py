@@ -26,7 +26,7 @@ from ...runtime.logging import log_info, log_warning, recent_warnings_and_errors
 from ...runtime.paths import APP_DATA_DIR, CONFIG_PATH, LOG_DIR, LOG_PATH
 from ...runtime.session import persist_runtime_state, save_ui_state
 from ...version import __version__
-from . import desktop_page, editor_page, import_workflows, library_page, overlay_cards
+from . import desktop_page, editor_page, import_workflows, library_page, local_api_page, overlay_cards
 from .about_page import build_about_page as build_about_page_widget
 from .diagnostics_page import build_diagnostics_page
 from .settings_page import build_settings_page as build_settings_page_widget
@@ -160,6 +160,7 @@ class ControlPanel(QWidget):
         self.build_library_tab()
         self.build_active_tab()
         self.build_settings_page()
+        self.build_local_api_page()
         self.build_diagnostics_tab()
         self.build_about_page()
         self.build_editor_tab()
@@ -186,7 +187,7 @@ class ControlPanel(QWidget):
         title.setObjectName("AppTitle")
         layout.addWidget(title)
 
-        for name in ("Library", "Desktop", "Settings", "Diagnostics", "About"):
+        for name in ("Library", "Desktop", "Settings", "Local API", "Diagnostics", "About"):
             button = QPushButton(name)
             button.setObjectName("NavButton")
             button.setCheckable(True)
@@ -212,6 +213,8 @@ class ControlPanel(QWidget):
         self.update_inspector_visibility()
         if name == "Diagnostics":
             self.refresh_diagnostics()
+        if name == "Local API":
+            self.refresh_local_api_page()
         if not self._restoring_ui_state:
             save_ui_state(reason="control_panel_page_changed")
 
@@ -320,6 +323,9 @@ class ControlPanel(QWidget):
     def build_settings_page(self):
         build_settings_page_widget(self)
 
+    def build_local_api_page(self):
+        local_api_page.build_local_api_page(self)
+
     def build_diagnostics_tab(self):
         build_diagnostics_page(self)
 
@@ -396,6 +402,20 @@ class ControlPanel(QWidget):
         return library_page.refresh_library(self)
     def refresh_active(self):
         return desktop_page.refresh_active(self)
+    def refresh_local_api_page(self):
+        return local_api_page.refresh_local_api_page(self)
+    def local_api_enabled_changed(self, checked):
+        return local_api_page.local_api_enabled_changed(self, checked)
+    def regenerate_local_api_token(self):
+        return local_api_page.regenerate_local_api_token(self)
+    def copy_local_api_token(self):
+        return local_api_page.copy_local_api_token(self)
+    def copy_local_api_url(self):
+        return local_api_page.copy_local_api_url(self)
+    def test_local_api_status(self):
+        return local_api_page.test_local_api_status(self)
+    def open_local_api_docs(self):
+        return local_api_page.open_local_api_docs(self)
     def overlay_card(self, window):
         return overlay_cards.overlay_card(self, window)
     def overlay_badges(self, window):

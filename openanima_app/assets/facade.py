@@ -25,6 +25,7 @@ from .scanner import asset_packs, assets_for_pack, gifs_for_pack, scan_assets
 from .thumbnails import make_thumbnail
 from ..runtime.config import (
     CONFIG_SCHEMA_VERSION,
+    DEFAULT_LOCAL_API_CONFIG,
     DEFAULT_UI_CONFIG,
     LOCKED_CONFIG_KEYS,
     UI_PAGE_NAMES,
@@ -40,6 +41,7 @@ from ..runtime.config import (
     load_config_data,
     normalize_config_data,
     normalize_control_panel_geometry,
+    normalize_local_api_config,
     normalize_ui_config,
     normalize_window_config,
     window_config_locked,

@@ -190,6 +190,72 @@ Example `asset.json`:
 
 ---
 
+## Experimental Local API
+
+OpenAnima includes an experimental Local API for same-machine automation. It is intended for streamer tools, VTuber setups, OBS helper scripts, scene switching, and desktop automation utilities that need to control local overlays.
+
+Safety defaults: the Local API is disabled by default, binds only to `127.0.0.1`, and every modifying `POST` request requires `X-OpenAnima-Token`. External tools should prefer `persistent_id` for stable overlay targeting; `runtime_id` is session-only, and `api_alias` is an optional friendly name.
+
+PowerShell setup:
+
+```powershell
+$base = "http://127.0.0.1:8765"
+$token = "YOUR_TOKEN"
+$headers = @{ "X-OpenAnima-Token" = $token }
+```
+
+Test status:
+
+```powershell
+Invoke-RestMethod -Uri "$base/api/status" -Method Get
+```
+
+List overlays:
+
+```powershell
+Invoke-RestMethod -Uri "$base/api/overlays/all" -Method Get
+```
+
+Spawn an overlay:
+
+```powershell
+$body = @{ asset_path = "C:/path/to/asset.gif"; x = 200; y = 200; scale = 1.0; opacity = 1.0 } | ConvertTo-Json
+$overlay = Invoke-RestMethod -Uri "$base/api/overlays/spawn" -Method Post -Headers $headers -ContentType "application/json" -Body $body
+$id = $overlay.id
+```
+
+Update an overlay:
+
+```powershell
+$body = @{ x = 300; y = 400; scale = 1.25; opacity = 0.8; visible = $true } | ConvertTo-Json
+Invoke-RestMethod -Uri "$base/api/overlays/$id/update" -Method Post -Headers $headers -ContentType "application/json" -Body $body
+```
+
+Save a scene:
+
+```powershell
+$body = @{ name = "coding_scene" } | ConvertTo-Json
+Invoke-RestMethod -Uri "$base/api/scenes/save" -Method Post -Headers $headers -ContentType "application/json" -Body $body
+```
+
+Inspect recent events:
+
+```powershell
+Invoke-RestMethod -Uri "$base/api/events/recent" -Method Get
+```
+
+Full Local API documentation and scripts are in [Local API examples and reference](examples/local_api/README.md).
+
+If port `8765` is already in use, OpenAnima falls back to another local port. Use the URL shown on the **Local API** page.
+
+Known limitations:
+
+* The API is experimental and may change before a stable automation contract is declared.
+* There is no WebSocket endpoint yet. Use `GET /api/events/recent` for the current in-memory event buffer.
+* Some assets require the interactive Asset Setup workflow; `POST /api/assets/import` may return `501 interactive_setup_required`.
+
+---
+
 ## What Can You Build With OpenAnima?
 
 ### Desktop Companions

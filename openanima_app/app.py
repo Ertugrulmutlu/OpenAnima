@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QApplication, QMenu, QStyle, QSystemTrayIcon
 from .assets.importer import import_gif_to_assets, seed_default_assets_dir
 from .assets.paths import resolve_saved_asset_path
 from .assets.scanner import assets_for_pack
+from . import local_api
 from .overlay import add_window, exit_app, refresh_control_panel
 from .runtime import state
 from .runtime.config import config_warning, load_config_data
@@ -40,6 +41,7 @@ def tray_exit():
 
 
 def save_on_about_to_quit():
+    local_api.stop_local_api()
     if state.EXITING:
         return
     persist_runtime_state("app_about_to_quit", force=True)
@@ -148,6 +150,7 @@ def main():
     app.aboutToQuit.connect(save_on_about_to_quit)
 
     state.CONTROL_PANEL = ControlPanel(app_icon)
+    local_api.ensure_dispatcher()
 
     explicit_windows = 0
     for arg in sys.argv[1:]:
@@ -177,6 +180,10 @@ def main():
     apply_control_panel_startup_state(ui_config)
     state.RESTORING_SESSION = False
     persist_runtime_state("startup_restore_complete", force=True)
+    if state.LOCAL_API_CONFIG.get("enabled", False):
+        local_api.start_local_api()
+        if state.CONTROL_PANEL is not None:
+            state.CONTROL_PANEL.refresh_local_api_page()
     exit_code = app.exec()
     log_info("OpenAnima shutdown")
     sys.exit(exit_code)

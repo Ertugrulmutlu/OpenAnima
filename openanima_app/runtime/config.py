@@ -17,6 +17,9 @@ WINDOW_CONFIG_KEYS = {
     "asset_path",
     "asset_id",
     "asset_type",
+    "runtime_id",
+    "persistent_id",
+    "api_alias",
     "x",
     "y",
     "locked",
@@ -37,7 +40,11 @@ VISIBLE_CONFIG_KEYS = ("intended_visible", "visible", "is_visible", "shown")
 DEFAULT_UI_CONFIG = {
     "control_panel_visible": True,
 }
-UI_PAGE_NAMES = {"Library", "Desktop", "Settings", "Diagnostics", "About"}
+DEFAULT_LOCAL_API_CONFIG = {
+    "enabled": False,
+    "token": "",
+}
+UI_PAGE_NAMES = {"Library", "Desktop", "Settings", "Local API", "Diagnostics", "About"}
 
 
 def config_warning(message):
@@ -49,6 +56,7 @@ def default_config():
         "schema_version": CONFIG_SCHEMA_VERSION,
         "asset_root": stored_path(DEFAULT_ASSETS_DIR),
         "ui": DEFAULT_UI_CONFIG.copy(),
+        "local_api": DEFAULT_LOCAL_API_CONFIG.copy(),
         "windows": [],
     }
 
@@ -166,6 +174,21 @@ def normalize_ui_config(ui):
     return normalized
 
 
+def normalize_local_api_config(local_api):
+    normalized = DEFAULT_LOCAL_API_CONFIG.copy()
+    if not isinstance(local_api, dict):
+        return normalized
+
+    if "enabled" in local_api:
+        normalized["enabled"] = config_bool(local_api.get("enabled"), default=False)
+
+    token = local_api.get("token")
+    if isinstance(token, str):
+        normalized["token"] = token.strip()
+
+    return normalized
+
+
 def normalize_config_data(data):
     if isinstance(data, list):
         raw_windows = data
@@ -177,6 +200,7 @@ def normalize_config_data(data):
 
         asset_root = data.get("asset_root")
         ui = normalize_ui_config(data.get("ui"))
+        local_api = normalize_local_api_config(data.get("local_api"))
         raw_windows = data.get("windows", [])
         if not isinstance(raw_windows, list):
             config_warning("Config windows field was invalid; starting with no saved overlays.")
@@ -185,10 +209,12 @@ def normalize_config_data(data):
         config_warning("Config root was invalid; starting with safe defaults.")
         asset_root = None
         ui = DEFAULT_UI_CONFIG.copy()
+        local_api = DEFAULT_LOCAL_API_CONFIG.copy()
         raw_windows = []
 
     if isinstance(data, list):
         ui = DEFAULT_UI_CONFIG.copy()
+        local_api = DEFAULT_LOCAL_API_CONFIG.copy()
 
     if isinstance(asset_root, str) and asset_root.strip():
         state.ASSETS_DIR = resolved_path(asset_root).resolve()
@@ -202,10 +228,12 @@ def normalize_config_data(data):
             windows.append(normalized)
 
     state.UI_CONFIG = ui.copy()
+    state.LOCAL_API_CONFIG = local_api.copy()
     return {
         "schema_version": CONFIG_SCHEMA_VERSION,
         "asset_root": stored_path(state.ASSETS_DIR),
         "ui": ui,
+        "local_api": local_api,
         "windows": windows,
     }
 

@@ -22,6 +22,7 @@ from ..runtime import state
 from ..runtime.action_runner import normalized_action_config
 from ..runtime.config import window_config_visible
 from ..runtime.logging import log_info, log_warning
+from ..runtime.overlay_ids import next_runtime_id, persistent_id_from_config, normalize_api_alias
 from ..runtime.paths import BASE_DIR
 from ..runtime.session import apply_window_config, persist_runtime_state
 from .movement import normalized_movement_config
@@ -103,6 +104,9 @@ class OverlayWindow(QWidget):
         self.asset = asset
         self.asset_path = Path(asset.path).resolve()
         self.asset_type = asset.type
+        self.runtime_id = next_runtime_id()
+        self.persistent_id = persistent_id_from_config(config)
+        self.api_alias = normalize_api_alias(config.get("api_alias"))
         self.gif_path = self.asset_path
         self._saved_window_config = dict(config)
         self.locked = False

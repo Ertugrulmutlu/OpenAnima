@@ -9,11 +9,13 @@ from .config import (
     atomic_write_json,
     config_bool,
     config_warning,
+    normalize_local_api_config,
     normalize_ui_config,
     window_config_locked,
     window_config_visible,
 )
 from .logging import log_info
+from .overlay_ids import generate_persistent_id, is_valid_persistent_id, normalize_api_alias
 from .paths import CONFIG_PATH
 from .action_runner import normalized_action_config
 from ..assets.paths import stored_path
@@ -30,6 +32,12 @@ def _config_int(config, key, default):
 def apply_window_config(overlay, config, restore_geometry=True, restore_visibility=False):
     config = config if isinstance(config, dict) else {}
     overlay._saved_window_config = dict(config)
+    persistent_id = config.get("persistent_id")
+    if is_valid_persistent_id(persistent_id):
+        overlay.persistent_id = persistent_id
+    elif not getattr(overlay, "persistent_id", ""):
+        overlay.persistent_id = generate_persistent_id()
+    overlay.api_alias = normalize_api_alias(config.get("api_alias"))
     overlay.intended_visible = window_config_visible(config, default=True)
 
     overlay.locked = window_config_locked(config, default=False)
@@ -82,6 +90,9 @@ def serialize_overlay_window(overlay):
             "path": stored_path(overlay.asset_path),
             "asset_id": overlay.asset.id,
             "asset_type": overlay.asset_type,
+            "runtime_id": getattr(overlay, "runtime_id", ""),
+            "persistent_id": getattr(overlay, "persistent_id", ""),
+            "api_alias": normalize_api_alias(getattr(overlay, "api_alias", "")),
             "x": pos.x(),
             "y": pos.y(),
             "locked": overlay.locked,
@@ -150,6 +161,14 @@ def save_ui_state(visible=None, reason="ui_state_changed"):
     persist_runtime_state(reason, ui=current_ui_config(visible=visible))
 
 
+def current_local_api_config(local_api=None):
+    if local_api is None:
+        local_api = state.LOCAL_API_CONFIG
+    normalized = normalize_local_api_config(local_api)
+    state.LOCAL_API_CONFIG = normalized.copy()
+    return normalized
+
+
 def build_session_config(windows=None, force_empty=False, ui=None):
     windows = state.WINDOWS if windows is None else windows
     window_configs = [serialize_overlay_window(window) for window in windows]
@@ -162,6 +181,7 @@ def build_session_config(windows=None, force_empty=False, ui=None):
         "schema_version": CONFIG_SCHEMA_VERSION,
         "asset_root": stored_path(state.ASSETS_DIR),
         "ui": ui_config,
+        "local_api": current_local_api_config(),
         "windows": window_configs,
     }
     return data

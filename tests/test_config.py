@@ -30,6 +30,7 @@ def test_missing_config_file_uses_defaults():
 
     assert config["schema_version"] == CONFIG_SCHEMA_VERSION
     assert config["ui"] == {"control_panel_visible": True}
+    assert config["local_api"] == {"enabled": False, "token": ""}
     assert config["windows"] == []
     assert state.ASSETS_DIR == DEFAULT_ASSETS_DIR
 
@@ -69,6 +70,7 @@ def test_partial_config_uses_defaults_and_keeps_valid_windows():
     assert config["schema_version"] == CONFIG_SCHEMA_VERSION
     assert config["asset_root"] == "assets"
     assert config["ui"] == {"control_panel_visible": True}
+    assert config["local_api"] == {"enabled": False, "token": ""}
     assert config["windows"] == [
         {
             "path": "assets/ok.gif",
@@ -106,6 +108,7 @@ def test_old_config_without_schema_version_still_loads():
 
         assert config["schema_version"] == CONFIG_SCHEMA_VERSION
         assert config["ui"] == {"control_panel_visible": True}
+        assert config["local_api"] == {"enabled": False, "token": ""}
         assert config["windows"] == [{"path": "assets/a.gif"}]
     finally:
         shutil.rmtree(root)
@@ -128,6 +131,12 @@ def test_ui_config_is_normalized_and_saved():
         "control_panel_geometry": {"x": 12, "y": 20, "width": 900, "height": 600},
         "last_page": "Settings",
     }
+
+
+def test_local_api_config_is_off_by_default_and_normalized():
+    config = normalize_config_data({"local_api": {"enabled": "yes", "token": "  abc  "}, "windows": []})
+
+    assert config["local_api"] == {"enabled": True, "token": "abc"}
 
 
 def test_save_config_preserves_hidden_ui_and_saved_overlay_failures(monkeypatch):
