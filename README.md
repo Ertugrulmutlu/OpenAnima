@@ -14,12 +14,14 @@
 
 <p align="center">
   <a href="https://ertugrulmutlu.github.io/OpenAnima/"><strong>Website</strong></a>
-  |
-  <a href="https://github.com/Ertugrulmutlu/OpenAnima/releases"><strong>Releases</strong></a>
-  |
-  <a href="https://ertugrulmutlu.itch.io/openanima"><strong>itch.io</strong></a>
-  |
-  <a href="https://youtu.be/qgJBF40b_L8"><strong>Demo Video</strong></a>
+|
+<a href="https://apps.microsoft.com/detail/9n3hp2wxkxlg?hl=en-us&gl=DE&ocid=pdpshare"><strong>Microsoft Store</strong></a>
+|
+<a href="https://github.com/Ertugrulmutlu/OpenAnima/releases"><strong>Releases</strong></a>
+|
+<a href="https://ertugrulmutlu.itch.io/openanima"><strong>itch.io</strong></a>
+|
+<a href="https://youtu.be/qgJBF40b_L8"><strong>Demo Video</strong></a>
 </p>
 
 ---
