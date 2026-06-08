@@ -47,71 +47,15 @@ print(openanima_app.__version__)
 ## Demo
 
 <p align="center">
-  <img src="docs/images/usage_example.gif" alt="OpenAnima desktop overlay demo" width="720" />
+  <a href="https://youtu.be/qgJBF40b_L8">
+    <img src="docs/images/usage_example.gif" alt="OpenAnima desktop overlay demo — click to watch on YouTube" width="720" />
+  </a>
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/qgJBF40b_L8"><strong>Watch the full demo on YouTube</strong></a>
-</p>
-
----
-
-## Screenshots
-
-### Library
-
-The Library page is used to select asset packs, import assets, review metadata, and add visual assets to the desktop.
-
-<p align="center">
-  <img src="docs/images/anaekrandolu.png" alt="OpenAnima Library with imported assets" width="900" />
-</p>
-
-### Desktop And Inspector
-
-The Desktop page shows active overlays. The Inspector lets you edit the selected overlay, including visibility, lock state, scale, opacity, speed, click-through, always-on-top behavior, actions, and movement settings.
-
-<p align="center">
-  <img src="docs/images/desktopdolu.png" alt="OpenAnima Desktop page with active overlays and inspector" width="900" />
-</p>
-
-### Asset Setup
-
-The Asset Setup dialog analyzes imported files and folders before they are added to the library. It can detect formats such as APNG, sprite strips, spritesheets, static images, and other supported asset types. Manual override is available when the automatic guess needs correction.
-
-<p align="center">
-  <img src="docs/images/assets_setup.png" alt="OpenAnima Asset Setup dialog" width="900" />
-</p>
-
-### Sprite Strip Setup
-
-Sprite strips can be configured with frame count, direction, frame size, FPS, loop behavior, crop settings, trim/padding options, anchors, live preview, and frame export.
-
-<p align="center">
-  <img src="docs/images/sprite_sprit.png" alt="OpenAnima sprite strip setup" width="900" />
-</p>
-
-### Composite UI Builder
-
-Composite UI assets are layered HUD-style assets. They can be used for health bars, mana bars, stamina bars, status widgets, and other game-like UI elements.
-
-<p align="center">
-  <img src="docs/images/composite_builder.png" alt="OpenAnima composite UI builder" width="900" />
-</p>
-
-### Settings
-
-The Settings page contains asset folder configuration, startup behavior, and recovery actions for hidden, locked, click-through, or off-screen overlays.
-
-<p align="center">
-  <img src="docs/images/settings.png" alt="OpenAnima Settings page" width="900" />
-</p>
-
-### Diagnostics
-
-The Diagnostics page shows useful runtime information such as version, config path, asset root, log file path, active overlay count, and recent warnings or errors.
-
-<p align="center">
-  <img src="docs/images/diagnostic.png" alt="OpenAnima Diagnostics page" width="900" />
+  <a href="https://youtu.be/qgJBF40b_L8">
+    <img src="https://img.shields.io/badge/Watch%20on-YouTube-red?style=for-the-badge&logo=youtube" alt="Watch on YouTube" />
+  </a>
 </p>
 
 ---
@@ -183,12 +127,54 @@ Example `asset.json`:
 2. Go to **Library**.
 3. Choose an asset pack or stay in **Root assets**.
 4. Click **Import Asset**, **Import Asset Folder**, or **Import Asset Pack**.
+
+<p align="left">
+  <a href="docs/images/anaekrandolu.png">
+    <img src="docs/images/anaekrandolu.png" alt="Library tab showing imported asset packs with thumbnails and an Add to Desktop button" width="500" />
+  </a>
+</p>
+
+<p align="left"><em>Select an asset pack, review thumbnails, and click Add to Desktop.</em></p>
+
 5. Review the detected type in the Asset Setup dialog.
 6. Confirm the metadata or choose a manual type.
+
+<p align="left">
+  <a href="docs/images/assets_setup.png">
+    <img src="docs/images/assets_setup.png" alt="Asset Setup dialog showing detected asset type with format options and a live preview pane" width="500" />
+  </a>
+</p>
+
+<p align="left"><em>The setup dialog runs before assets enter the library. Supports APNG, sprite strips, spritesheets, frame folders, and static images.</em></p>
+
+<p align="left">
+  <a href="docs/images/sprite_sprit.png">
+    <img src="docs/images/sprite_sprit.png" alt="Sprite strip setup panel with frame grid, FPS controls, crop handles, and a live preview" width="500" />
+  </a>
+</p>
+
+<p align="left"><em>Sprite strip assets have additional configuration for frame count, FPS, crop, and loop settings.</em></p>
+
+<p align="left">
+  <a href="docs/images/composite_builder.png">
+    <img src="docs/images/composite_builder.png" alt="Composite UI builder showing layered image assets with runtime sliders for health, mana, and stamina bars" width="500" />
+  </a>
+</p>
+
+<p align="left"><em>Composite UI assets have a layer builder with runtime value sliders for health bars, status indicators, and HUD elements.</em></p>
+
 7. Select the imported asset and click **Add to Desktop**.
 8. Go to **Desktop**.
 9. Select the active overlay.
 10. Use the Inspector to edit scale, opacity, speed, visibility, click-through, always-on-top, actions, and movement settings.
+
+<p align="left">
+  <a href="docs/images/desktopdolu.png">
+    <img src="docs/images/desktopdolu.png" alt="Desktop tab showing active overlays on screen with the Inspector panel open, displaying controls for scale, opacity, speed, lock, and movement" width="500" />
+  </a>
+</p>
+
+<p align="left"><em>Select an overlay to adjust scale, opacity, speed, lock state, click-through, always-on-top, actions, and movement.</em></p>
 
 ---
 
@@ -315,6 +301,24 @@ pip install -r requirements.txt
 python main.py
 ```
 
+### Settings & Diagnostics
+
+<p align="left">
+  <a href="docs/images/settings.png">
+    <img src="docs/images/settings.png" alt="Settings page with asset folder path input, startup options, and recovery buttons for hidden, locked, or off-screen overlays" width="500" />
+  </a>
+</p>
+
+<p align="left"><em>Configure the asset folder, startup behavior, and recovery actions for hidden, locked, or off-screen overlays.</em></p>
+
+<p align="left">
+  <a href="docs/images/diagnostic.png">
+    <img src="docs/images/diagnostic.png" alt="Diagnostics page showing version number, config path, log file path, active overlay count, and recent warnings" width="500" />
+  </a>
+</p>
+
+<p align="left"><em>Diagnostics shows runtime paths, version info, and recent warnings. Available in packaged builds.</em></p>
+
 ---
 
 ## Build EXE
@@ -351,26 +355,26 @@ Runtime files such as `config.json`, `assets/`, and `logs/` are created or used 
 
 ```txt
 OpenAnima/
-  main.py                    Application entry point
-  OpenAnima.spec             PyInstaller build configuration
-  requirements.txt           Python dependencies
-  README.md                  Project documentation
-  CHANGELOG.md               Release history
-  LICENSE                    MIT license
-  NOTICE.md                  Asset and rights notice
-  docs/                      Website and release materials
-  assets/                    Local sample/runtime asset folder
-  tests/                     Automated tests
-  openanima_app/
-    app.py                   Application startup and tray wiring
-    version.py               Package version
-    assets/                  Asset models, metadata, detection, import, scan, thumbnails
-    overlay/                 Overlay windows, flags, menus, movement, serialization
-    rendering/               GIF/APNG/video/frame/sprite/composite rendering helpers
-    runtime/                 Paths, logging, config, session, recovery, state, actions
-    ui/
-      asset_setup/           Asset setup dialog and preview helpers
-      control_panel/         Library, Desktop, Editor, Settings, Diagnostics, About pages
+├── main.py                  Application entry point
+├── OpenAnima.spec           PyInstaller build configuration
+├── requirements.txt         Python dependencies
+├── README.md                Project documentation
+├── CHANGELOG.md             Release history
+├── LICENSE                  MIT license
+├── NOTICE.md                Asset and rights notice
+├── docs/                    Website and release materials
+├── assets/                  Local sample/runtime asset folder
+├── tests/                   Automated tests
+└── openanima_app/
+    ├── app.py               Application startup and tray wiring
+    ├── version.py           Package version
+    ├── assets/              Asset models, metadata, detection, import, scan, thumbnails
+    ├── overlay/             Overlay windows, flags, menus, movement, serialization
+    ├── rendering/           GIF/APNG/video/frame/sprite/composite rendering helpers
+    ├── runtime/             Paths, logging, config, session, recovery, state, actions
+    └── ui/
+        ├── asset_setup/     Asset setup dialog and preview helpers
+        └── control_panel/   Library, Desktop, Editor, Settings, Diagnostics, About pages
 ```
 
 ---
