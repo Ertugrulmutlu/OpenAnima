@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QCoreApplication
 from PySide6.QtWidgets import QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
 
 
@@ -8,9 +8,11 @@ def build_diagnostics_page(panel):
     layout.setContentsMargins(16, 16, 16, 16)
     layout.setSpacing(12)
 
-    title = QLabel("Diagnostics")
+    title = QLabel(QCoreApplication.translate("DiagnosticsPage", "Diagnostics"))
     title.setObjectName("SectionTitle")
-    subtitle = QLabel("Review runtime paths, active overlays, and recent warnings.")
+    
+    subtitle_text = QCoreApplication.translate("DiagnosticsPage", "Review runtime paths, active overlays, and recent warnings.")
+    subtitle = QLabel(subtitle_text)
     subtitle.setObjectName("SubtleLabel")
     subtitle.setWordWrap(True)
 
@@ -37,18 +39,25 @@ def build_diagnostics_page(panel):
         label.setWordWrap(True)
         info_layout.addWidget(label)
 
-    warnings_label = QLabel("Recent warnings/errors")
+    warnings_text = QCoreApplication.translate("DiagnosticsPage", "Recent warnings/errors")
+    warnings_label = QLabel(warnings_text)
     warnings_label.setObjectName("SubtleLabel")
     panel.diagnostics_recent = QTextEdit()
     panel.diagnostics_recent.setReadOnly(True)
     panel.diagnostics_recent.setMinimumHeight(160)
 
-    open_logs_button = QPushButton("Open Logs Folder")
-    copy_button = QPushButton("Copy Diagnostic Info")
-    refresh_button = QPushButton("Refresh")
+    btn_open_logs = QCoreApplication.translate("DiagnosticsPage", "Open Logs Folder")
+    btn_copy = QCoreApplication.translate("DiagnosticsPage", "Copy Diagnostic Info")
+    btn_refresh = QCoreApplication.translate("DiagnosticsPage", "Refresh")
+
+    open_logs_button = QPushButton(btn_open_logs)
+    copy_button = QPushButton(btn_copy)
+    refresh_button = QPushButton(btn_refresh)
+    
     panel.prepare_button(open_logs_button, 124)
     panel.prepare_button(copy_button, 140)
     panel.prepare_button(refresh_button, 92)
+    
     open_logs_button.clicked.connect(panel.open_logs_folder)
     copy_button.clicked.connect(panel.copy_diagnostics)
     refresh_button.clicked.connect(panel.refresh_diagnostics)
@@ -60,4 +69,6 @@ def build_diagnostics_page(panel):
     layout.addWidget(warnings_label)
     layout.addWidget(panel.diagnostics_recent, 1)
     layout.addWidget(buttons)
-    panel.add_page("Diagnostics", panel.scroll_page(tab))
+    
+    page_title = QCoreApplication.translate("DiagnosticsPage", "Diagnostics")
+    panel.add_page(page_title, panel.scroll_page(tab))

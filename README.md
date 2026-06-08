@@ -300,6 +300,35 @@ Requirements:
 pip install -r requirements.txt
 python main.py
 ```
+### Localization
+The application supports internationalization (i18n) using Qt's translation system.
+
+#### Managing Translations
+An automated script is provided to scan the codebase, update the source `.ts` XML files, and compile them into binary `.qm` files. 
+
+The script dynamically detects supported languages by scanning the `openanima_app/i18n/` directory for any existing `.ts` files (using pure language codes as filenames, e.g., `ru.ts`):
+
+```bash
+python tools/update_translations.py
+```
+
+#### Adding a New Language
+
+By default, the application runs in English (no translation file required). To add support for a new language:
+
+1. Create a new empty file named <lang_code>.ts inside the openanima_app/i18n/ directory (for example, ja.ts for Japanese).
+2. **(Optional)** Place a corresponding language flag icon named `<lang_code>.svg` into the same directory (e.g., `ja.svg`) to display it in the language selector UI.
+3. Run the automation script:
+    ```bash
+    python tools/update_translations.py
+    ```
+4. Open the newly populated .ts file in Qt Linguist to provide your translations, then run the script again to compile the final .qm binaries.
+
+#### Checking Translation Status
+You can track translation progress and verify language asset coverage at any time using the dedicated statistics script:
+```bash
+python tools/check_translation_stats.py
+```
 
 ### Settings & Diagnostics
 

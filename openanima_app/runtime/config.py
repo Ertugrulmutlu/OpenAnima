@@ -163,6 +163,9 @@ def normalize_ui_config(ui):
     if "control_panel_visible" in ui:
         normalized["control_panel_visible"] = bool(ui.get("control_panel_visible"))
 
+    if "language" in ui:
+        normalized["language"] = str(ui.get("language"))
+
     geometry = normalize_control_panel_geometry(ui.get("control_panel_geometry"))
     if geometry is not None:
         normalized["control_panel_geometry"] = geometry

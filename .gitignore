@@ -57,3 +57,6 @@ scratch/
 *.swo
 Thumbs.db
 Desktop.ini
+
+# Qt translation compiled files
+openanima_app/i18n/*.qm

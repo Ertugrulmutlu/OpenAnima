@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import QPoint, QRect, QSize, Qt, QUrl
+from PySide6.QtCore import QPoint, QRect, QSize, Qt, QUrl, QCoreApplication
 from PySide6.QtGui import QAction, QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
@@ -187,12 +187,21 @@ class ControlPanel(QWidget):
         title.setObjectName("AppTitle")
         layout.addWidget(title)
 
-        for name in ("Library", "Desktop", "Settings", "Local API", "Diagnostics", "About"):
-            button = QPushButton(name)
+        nav_items = [
+            ("Library", QCoreApplication.translate("LibraryPage", "Library")),
+            ("Desktop", QCoreApplication.translate("DesktopPage", "Desktop")),
+            ("Settings", QCoreApplication.translate("SettingsPage", "Settings")),
+            ("Local API", QCoreApplication.translate("LocalApiPage", "Local API")),
+            ("Diagnostics", QCoreApplication.translate("DiagnosticsPage", "Diagnostics")),
+            ("About", QCoreApplication.translate("AboutPage", "About")),
+        ]
+
+        for internal_name, display_name in nav_items:
+            button = QPushButton(display_name)
             button.setObjectName("NavButton")
             button.setCheckable(True)
-            button.clicked.connect(lambda checked=False, page=name: self.select_page(page))
-            self.nav_buttons[name] = button
+            button.clicked.connect(lambda checked=False, page=internal_name: self.select_page(page))
+            self.nav_buttons[internal_name] = button
             layout.addWidget(button)
 
         layout.addStretch()
@@ -203,9 +212,14 @@ class ControlPanel(QWidget):
         widget.setProperty("pageName", name)
 
     def select_page(self, name):
+        btn = self.nav_buttons.get(name)
+        localized_name = btn.text() if btn is not None else name
+
         for index in range(self.pages.count()):
             widget = self.pages.widget(index)
-            if widget.property("pageName") == name:
+
+            widget_page_name = widget.property("pageName")
+            if widget_page_name == name or widget_page_name == localized_name:
                 self.pages.setCurrentIndex(index)
                 break
         for page_name, button in self.nav_buttons.items():
@@ -389,7 +403,8 @@ class ControlPanel(QWidget):
     def refresh_packs(self):
         return library_page.refresh_packs(self)
     def change_asset_root(self):
-        path = QFileDialog.getExistingDirectory(self, "Change Assets Folder", str(state.ASSETS_DIR))
+        dialog_title = self.tr("Change Assets Folder")
+        path = QFileDialog.getExistingDirectory(self, dialog_title, str(state.ASSETS_DIR))
         if not path:
             return
 
@@ -430,34 +445,43 @@ class ControlPanel(QWidget):
         if not hasattr(self, "diagnostics_recent"):
             return
 
-        self.diagnostics_version.setText(f"Version: {__version__}")
-        self.diagnostics_data_dir.setText(f"Data: {APP_DATA_DIR}")
-        self.diagnostics_config_path.setText(f"Config: {CONFIG_PATH}")
-        self.diagnostics_asset_root.setText(f"Assets: {state.ASSETS_DIR}")
-        self.diagnostics_log_path.setText(f"Log file: {LOG_PATH}")
-        self.diagnostics_overlay_count.setText(f"Active overlays: {len(state.WINDOWS)}")
+        lbl_version = self.tr("Version:")
+        lbl_data = self.tr("Data:")
+        lbl_config = self.tr("Config:")
+        lbl_assets = self.tr("Assets:")
+        lbl_log_file = self.tr("Log file:")
+        lbl_active_overlays = self.tr("Active overlays:")
+
+        self.diagnostics_version.setText(f"{lbl_version} {__version__}")
+        self.diagnostics_data_dir.setText(f"{lbl_data} {APP_DATA_DIR}")
+        self.diagnostics_config_path.setText(f"{lbl_config} {CONFIG_PATH}")
+        self.diagnostics_asset_root.setText(f"{lbl_assets} {state.ASSETS_DIR}")
+        self.diagnostics_log_path.setText(f"{lbl_log_file} {LOG_PATH}")
+        self.diagnostics_overlay_count.setText(f"{lbl_active_overlays} {len(state.WINDOWS)}")
 
         recent = recent_warnings_and_errors()
         if recent:
             lines = [f"{item['level']}: {item['message']}" for item in recent[-30:]]
             self.diagnostics_recent.setPlainText("\n".join(lines))
         else:
-            self.diagnostics_recent.setPlainText("No warnings or errors recorded this session.")
+            no_errors_msg = self.tr("No warnings or errors recorded this session.")
+            self.diagnostics_recent.setPlainText(no_errors_msg)
 
     def diagnostics_text(self):
         recent = recent_warnings_and_errors()
         warnings = "\n".join(f"- {item['level']}: {item['message']}" for item in recent[-30:])
         if not warnings:
-            warnings = "- None recorded this session."
+            warnings = f"- {self.tr('None recorded this session.')}"
+            
         return "\n".join(
             [
-                f"OpenAnima version: {__version__}",
-                f"Data directory: {APP_DATA_DIR}",
-                f"Config path: {CONFIG_PATH}",
-                f"Asset root: {state.ASSETS_DIR}",
-                f"Log file: {LOG_PATH}",
-                f"Active overlays: {len(state.WINDOWS)}",
-                "Recent warnings/errors:",
+                f"{self.tr('OpenAnima version:')} {__version__}",
+                f"{self.tr('Data directory:')} {APP_DATA_DIR}",
+                f"{self.tr('Config path:')} {CONFIG_PATH}",
+                f"{self.tr('Asset root:')} {state.ASSETS_DIR}",
+                f"{self.tr('Log file:')} {LOG_PATH}",
+                f"{self.tr('Active overlays:')} {len(state.WINDOWS)}",
+                self.tr("Recent warnings/errors:"),
                 warnings,
             ]
         )
@@ -469,7 +493,9 @@ class ControlPanel(QWidget):
                 raise OSError(f"Could not open {LOG_DIR}")
         except Exception as exc:
             log_warning("Unable to open logs folder: %s", exc)
-            QMessageBox.warning(self, "Diagnostics", "Unable to open the logs folder.")
+            box_title = self.tr("Diagnostics")
+            box_msg = self.tr("Unable to open the logs folder.")
+            QMessageBox.warning(self, box_title, box_msg)
 
     def copy_diagnostics(self):
         QApplication.clipboard().setText(self.diagnostics_text())
@@ -486,11 +512,14 @@ class ControlPanel(QWidget):
         self.library_list.setCurrentItem(item)
         menu = QMenu(self)
 
-        add_action = QAction("Add to Desktop", self)
+        act_add_text = self.tr("Add to Desktop")
+        act_edit_text = self.tr("Edit Asset Metadata")
+        
+        add_action = QAction(act_add_text, self)
         add_action.triggered.connect(self.add_selected_library_asset)
         menu.addAction(add_action)
 
-        configure_action = QAction("Edit Asset Metadata", self)
+        configure_action = QAction(act_edit_text, self)
         configure_action.triggered.connect(self.configure_selected_library_asset)
         menu.addAction(configure_action)
 
@@ -504,15 +533,19 @@ class ControlPanel(QWidget):
         self.active_list.setCurrentItem(item)
         menu = QMenu(self)
 
-        edit_action = QAction("Edit Overlay", self)
+        act_edit_overlay = self.tr("Edit Overlay")
+        act_edit_meta = self.tr("Edit Asset Metadata")
+        act_remove_overlay = self.tr("Remove Overlay")
+
+        edit_action = QAction(act_edit_overlay, self)
         edit_action.triggered.connect(self.select_active)
         menu.addAction(edit_action)
 
-        configure_action = QAction("Edit Asset Metadata", self)
+        configure_action = QAction(act_edit_meta, self)
         configure_action.triggered.connect(self.configure_active_asset)
         menu.addAction(configure_action)
 
-        close_action = QAction("Remove Overlay", self)
+        close_action = QAction(act_remove_overlay, self)
         close_action.triggered.connect(self.close_active)
         menu.addAction(close_action)
 
@@ -601,10 +634,13 @@ class ControlPanel(QWidget):
             self.refresh_active()
             return
 
+        box_title = self.tr("Clear Saved Session")
+        box_msg = self.tr("Close all active overlays and save an empty session?")
+        
         result = QMessageBox.question(
             self,
-            "Clear Saved Session",
-            "Close all active overlays and save an empty session?",
+            box_title,
+            box_msg,
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
         )
@@ -693,3 +729,42 @@ class ControlPanel(QWidget):
             return
 
         event.ignore()
+
+    def change_language(self, index):
+        selected_lang = self.language_combo.itemData(index)
+        if selected_lang is None:
+            return
+
+        from ...runtime.config import load_config_data, atomic_write_json
+        from ...runtime import state
+        from PySide6.QtWidgets import QMessageBox
+        
+        try:
+            config_data = load_config_data()
+        except Exception:
+            config_data = {}
+
+        if "ui" not in config_data:
+            config_data["ui"] = {}
+
+        if config_data["ui"].get("language") == selected_lang:
+            return
+
+        config_data["ui"]["language"] = selected_lang
+
+        if hasattr(state, "UI_CONFIG") and isinstance(state.UI_CONFIG, dict):
+            state.UI_CONFIG["language"] = selected_lang
+
+        try:
+            atomic_write_json(CONFIG_PATH, config_data)
+            log_info(f"Language changed to: '{selected_lang or 'System Default'}'. Restart required.")
+            
+            box_title = self.tr("Language Changed")
+            box_msg = self.tr(
+                "Language settings have been updated. Please restart the application to apply the changes."
+            )
+            
+            QMessageBox.information(self, box_title, box_msg)
+                
+        except Exception as e:
+            log_warning(f"Failed to save language change: {e}")

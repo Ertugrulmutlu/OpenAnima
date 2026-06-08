@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import QCoreApplication, Qt, QSize
 from PySide6.QtWidgets import (
     QComboBox, QHBoxLayout, QLabel, QListView, QListWidget,
     QListWidgetItem, QPushButton, QVBoxLayout, QWidget,
@@ -21,9 +21,9 @@ def build_library_tab(panel):
 
     header = QHBoxLayout()
     title_box = QVBoxLayout()
-    title = QLabel("Library")
+    title = QLabel(QCoreApplication.translate("LibraryPage", "Library"))
     title.setObjectName("SectionTitle")
-    subtitle = QLabel("Choose an asset pack and add visual assets to the desktop.")
+    subtitle = QLabel(QCoreApplication.translate("LibraryPage", "Choose an asset pack and add visual assets to the desktop."))
     subtitle.setObjectName("SubtleLabel")
     subtitle.setWordWrap(True)
     title_box.addWidget(title)
@@ -33,14 +33,14 @@ def build_library_tab(panel):
     panel.pack_combo.currentIndexChanged.connect(panel.refresh_library)
 
     header.addLayout(title_box, 1)
-    header.addWidget(QLabel("Pack"))
+    header.addWidget(QLabel(QCoreApplication.translate("LibraryPage", "Pack")))
     header.addWidget(panel.pack_combo)
 
     root_row = QHBoxLayout()
     panel.asset_root_label = QLabel()
     panel.asset_root_label.setObjectName("SubtleLabel")
     panel.asset_root_label.setWordWrap(True)
-    change_root_button = QPushButton("Change Assets Folder")
+    change_root_button = QPushButton(QCoreApplication.translate("LibraryPage", "Change Assets Folder"))
     change_root_button.clicked.connect(panel.change_asset_root)
     root_row.addWidget(panel.asset_root_label, 1)
     root_row.addWidget(change_root_button)
@@ -57,15 +57,15 @@ def build_library_tab(panel):
     panel.library_list.itemDoubleClicked.connect(lambda item: panel.add_selected_library_asset())
     panel.library_list.customContextMenuRequested.connect(panel.open_library_menu)
 
-    import_button = QPushButton("Import Asset")
-    import_folder_button = QPushButton("Import Asset Folder")
-    import_pack_button = QPushButton("Import Asset Pack")
-    configure_button = QPushButton("Asset Metadata")
-    add_button = QPushButton("Add to Desktop")
+    import_button = QPushButton(QCoreApplication.translate("LibraryPage", "Import Asset"))
+    import_folder_button = QPushButton(QCoreApplication.translate("LibraryPage", "Import Asset Folder"))
+    import_pack_button = QPushButton(QCoreApplication.translate("LibraryPage", "Import Asset Pack"))
+    configure_button = QPushButton(QCoreApplication.translate("LibraryPage", "Asset Metadata"))
+    add_button = QPushButton(QCoreApplication.translate("LibraryPage", "Add to Desktop"))
     panel.prepare_button(import_button, 104)
     panel.prepare_button(import_folder_button, 136)
     panel.prepare_button(import_pack_button, 124)
-    panel.prepare_button(configure_button, 118, "Edit Asset Metadata")
+    panel.prepare_button(configure_button, 118, QCoreApplication.translate("LibraryPage", "Edit Asset Metadata"))
     panel.prepare_button(add_button, 116)
     import_button.clicked.connect(panel.import_asset)
     import_folder_button.clicked.connect(panel.import_folder)
@@ -78,20 +78,22 @@ def build_library_tab(panel):
     layout.addLayout(root_row)
     layout.addWidget(panel.library_list, 1)
     layout.addWidget(buttons)
+    
     panel.library_empty = panel.empty_state(
-        "No assets yet",
+        QCoreApplication.translate("LibraryPage", "No assets yet"),
         "",
-        [("Import Asset", panel.import_asset), ("Import Asset Pack", panel.import_pack)],
+        [
+            (QCoreApplication.translate("LibraryPage", "Import Asset"), panel.import_asset), 
+            (QCoreApplication.translate("LibraryPage", "Import Asset Pack"), panel.import_pack)
+        ],
     )
     panel.library_empty.hide()
     layout.addWidget(panel.library_empty)
     panel.add_page("Library", tab)
 
 
-
 def active_pack_dir(panel):
     return Path(panel.pack_combo.currentData() or state.ASSETS_DIR)
-
 
 
 def refresh_packs(panel):
@@ -108,11 +110,13 @@ def refresh_packs(panel):
             panel.pack_combo.setCurrentIndex(index)
 
     panel.pack_combo.blockSignals(False)
-    panel.asset_root_label.setText(f"Assets: {state.ASSETS_DIR}")
+    
+    assets_prefix = QCoreApplication.translate("LibraryPage", "Assets:")
+    panel.asset_root_label.setText(f"{assets_prefix} {state.ASSETS_DIR}")
+    
     if hasattr(panel, "settings_asset_root_label"):
         panel.settings_asset_root_label.setText(str(state.ASSETS_DIR))
     panel.refresh_library()
-
 
 
 def refresh_library(panel):
@@ -136,7 +140,6 @@ def refresh_library(panel):
         panel.library_list.addItem(item)
 
 
-
 def library_path_from_current_item(panel):
     item = panel.library_list.currentItem()
     if item is None or not item.data(Qt.UserRole):
@@ -144,9 +147,7 @@ def library_path_from_current_item(panel):
     return Path(item.data(Qt.UserRole))
 
 
-
 def add_selected_library_asset(panel):
     item = panel.library_list.currentItem()
     if item is not None and item.data(Qt.UserRole):
         add_window(item.data(Qt.UserRole))
-

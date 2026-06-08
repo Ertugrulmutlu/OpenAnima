@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QCoreApplication
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMessageBox, QPushButton, QSizePolicy, QVBoxLayout, QWidget
 
 from ...runtime import state
@@ -11,9 +11,12 @@ def build_active_tab(panel):
     layout.setContentsMargins(16, 16, 16, 16)
     layout.setSpacing(12)
 
-    title = QLabel("Desktop")
+    title_text = QCoreApplication.translate("DesktopPage", "Desktop")
+    title = QLabel(title_text)
     title.setObjectName("SectionTitle")
-    subtitle = QLabel("Manage active overlays and select one to edit it in the Inspector.")
+    
+    subtitle_text = QCoreApplication.translate("DesktopPage", "Manage active overlays and select one to edit it in the Inspector.")
+    subtitle = QLabel(subtitle_text)
     subtitle.setObjectName("SubtleLabel")
     subtitle.setWordWrap(True)
 
@@ -31,12 +34,21 @@ def build_active_tab(panel):
     active_header_layout = QHBoxLayout(panel.active_header)
     active_header_layout.setContentsMargins(0, 0, 0, 0)
     active_header_layout.setSpacing(10)
-    active_label = QLabel("Active overlays")
+    
+    header_title = QCoreApplication.translate("DesktopPage", "Active overlays")
+    active_label = QLabel(header_title)
     active_label.setObjectName("CardTitle")
-    hide_all_button = QPushButton("Hide All")
-    show_all_button = QPushButton("Show All")
-    panel.prepare_button(hide_all_button, 86, "Hide all overlays")
-    panel.prepare_button(show_all_button, 86, "Show all overlays")
+    
+    hide_all_text = QCoreApplication.translate("DesktopPage", "Hide All")
+    show_all_text = QCoreApplication.translate("DesktopPage", "Show All")
+    hide_all_button = QPushButton(hide_all_text)
+    show_all_button = QPushButton(show_all_text)
+    
+    hide_tip = QCoreApplication.translate("DesktopPage", "Hide all overlays")
+    show_tip = QCoreApplication.translate("DesktopPage", "Show all overlays")
+    panel.prepare_button(hide_all_button, 86, hide_tip)
+    panel.prepare_button(show_all_button, 86, show_tip)
+    
     hide_all_button.clicked.connect(panel.hide_all_overlays)
     show_all_button.clicked.connect(panel.show_all_overlays)
     active_header_layout.addWidget(active_label)
@@ -44,10 +56,13 @@ def build_active_tab(panel):
     active_header_layout.addWidget(hide_all_button)
     active_header_layout.addWidget(show_all_button)
 
+    empty_title = QCoreApplication.translate("DesktopPage", "No active overlays")
+    action_text = QCoreApplication.translate("DesktopPage", "Add Asset to Desktop")
+    
     panel.desktop_empty = panel.empty_state(
-    "No active overlays",
-    " ",
-    [("Add Asset to Desktop", lambda: panel.select_page("Library"))],
+        empty_title,
+        " ",
+        [(action_text, lambda: panel.select_page("Library"))],
     )
     panel.desktop_empty.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -56,8 +71,9 @@ def build_active_tab(panel):
     layout.addWidget(panel.desktop_empty, 1)
     layout.addWidget(panel.active_header)
     layout.addWidget(panel.active_list, 1)
-    panel.add_page("Desktop", tab)
-
+    
+    panel.add_page(title_text, tab)
+    tab.setProperty("pageName", "Desktop")
 
 
 def refresh_active(panel):
@@ -115,8 +131,8 @@ def run_overlay_action(panel, window):
         return
     ok, message = window.run_action()
     if not ok:
-        QMessageBox.warning(panel, "Run Action", message)
-
+        dialog_title = QCoreApplication.translate("DesktopPage", "Run Action")
+        QMessageBox.warning(panel, dialog_title, message)
 
 
 def close_window(panel, window):

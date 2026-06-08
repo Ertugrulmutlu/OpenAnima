@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QCoreApplication
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout
 
 from ...assets.thumbnails import make_thumbnail
@@ -38,14 +38,24 @@ def overlay_card(panel, window):
     return card
 
 
-
 def overlay_badges(panel, window):
     intended_visible = getattr(window, "intended_visible", None)
     if intended_visible is None:
         intended_visible = window.isVisible()
-    return [
-    str(window.asset_type).replace("_", " ").title(),
-    "Visible" if bool(intended_visible) else "Hidden",
-    "Locked" if window.locked else "Unlocked",
-    ]
-
+    
+    raw_type = str(window.asset_type).replace("_", " ").title()
+    localized_type = QCoreApplication.translate("OverlayCard", raw_type)
+    
+    visibility_text = (
+        QCoreApplication.translate("OverlayCard", "Visible")
+        if bool(intended_visible)
+        else QCoreApplication.translate("OverlayCard", "Hidden")
+    )
+    
+    lock_text = (
+        QCoreApplication.translate("OverlayCard", "Locked")
+        if window.locked
+        else QCoreApplication.translate("OverlayCard", "Unlocked")
+    )
+    
+    return [localized_type, visibility_text, lock_text]

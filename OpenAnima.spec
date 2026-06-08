@@ -1,7 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('icon.ico', '.')]
+datas = [
+    ('icon.ico', '.'),
+    ('openanima_app/i18n', 'openanima_app/i18n')
+]
 binaries = []
 hiddenimports = []
 tmp_ret = collect_all('openanima_app')

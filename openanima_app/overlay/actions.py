@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtCore import QCoreApplication
 
 from ..runtime import state
 from ..runtime.action_runner import ActionRunner, normalized_action_config
@@ -20,12 +21,22 @@ def exit_app(reason="normal_app_quit"):
 
 def confirm_exit_or_tray(parent=None):
     dialog = QMessageBox(parent)
-    dialog.setWindowTitle("Exit OpenAnima")
-    dialog.setText("Do you want to exit the application or minimize to tray?")
+    
+    dialog.setWindowTitle(QCoreApplication.translate("ExitDialog", "Exit OpenAnima"))
+    dialog.setText(QCoreApplication.translate("ExitDialog", "Do you want to exit the application or minimize to tray?"))
 
-    minimize_button = dialog.addButton("Minimize to Tray", QMessageBox.ActionRole)
-    exit_button = dialog.addButton("Exit", QMessageBox.DestructiveRole)
-    cancel_button = dialog.addButton("Cancel", QMessageBox.RejectRole)
+    minimize_button = dialog.addButton(
+        QCoreApplication.translate("ExitDialog", "Minimize to Tray"), 
+        QMessageBox.ActionRole
+    )
+    exit_button = dialog.addButton(
+        QCoreApplication.translate("ExitDialog", "Exit"), 
+        QMessageBox.DestructiveRole
+    )
+    cancel_button = dialog.addButton(
+        QCoreApplication.translate("ExitDialog", "Cancel"), 
+        QMessageBox.RejectRole
+    )
     cancel_button.hide()
     dialog.setDefaultButton(minimize_button)
     dialog.setEscapeButton(cancel_button)
@@ -106,4 +117,5 @@ def run_action(window):
 def show_action_result(window):
     ok, message = run_action(window)
     if not ok:
-        QMessageBox.warning(window, "Run Action", message)
+        title = QCoreApplication.translate("ActionError", "Run Action")
+        QMessageBox.warning(window, title, message)

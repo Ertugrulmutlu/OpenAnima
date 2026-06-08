@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import QDialog, QFileDialog, QMessageBox
 
 from ...assets.analyzer import AssetAnalyzer, AssetGuess, create_asset_folder_from_guess
@@ -18,11 +19,14 @@ from ..asset_setup.dialog import AssetSetupDialog
 
 
 def import_asset(panel):
+    dialog_title = QCoreApplication.translate("AssetImporter", "Import Asset")
+    file_filter = QCoreApplication.translate("AssetImporter", "Visual assets (*.gif *.apng *.png *.jpg *.jpeg *.webp *.webm)")
+    
     path, _ = QFileDialog.getOpenFileName(
         panel,
-        "Import Asset",
+        dialog_title,
         str(BASE_DIR),
-        "Visual assets (*.gif *.apng *.png *.jpg *.jpeg *.webp *.webm)",
+        file_filter,
     )
     if not path:
         return
@@ -31,21 +35,26 @@ def import_asset(panel):
 
 
 def import_folder(panel):
-    path = QFileDialog.getExistingDirectory(panel, "Import Asset Folder", str(BASE_DIR))
+    dialog_title = QCoreApplication.translate("AssetImporter", "Import Asset Folder")
+    path = QFileDialog.getExistingDirectory(panel, dialog_title, str(BASE_DIR))
     if not path:
         return
     panel.import_analyzed_path(Path(path))
 
 
 def import_pack(panel):
+    dialog_title = QCoreApplication.translate("AssetImporter", "Import Asset Pack")
+    file_filter = QCoreApplication.translate("AssetImporter", "Asset packs (*.zip);;All files (*)")
+    
     path, _ = QFileDialog.getOpenFileName(
         panel,
-        "Import Asset Pack",
+        dialog_title,
         str(BASE_DIR),
-        "Asset packs (*.zip);;All files (*)",
+        file_filter,
     )
     if not path:
-        folder = QFileDialog.getExistingDirectory(panel, "Import Asset Pack Folder", str(BASE_DIR))
+        folder_title = QCoreApplication.translate("AssetImporter", "Import Asset Pack Folder")
+        folder = QFileDialog.getExistingDirectory(panel, folder_title, str(BASE_DIR))
         path = folder
     if not path:
         return
@@ -54,40 +63,56 @@ def import_pack(panel):
 
 
 def import_asset_pack_path(panel, path):
+    dialog_title = QCoreApplication.translate("AssetImporter", "Import Asset Pack")
     try:
         result = import_asset_pack(Path(path), state.ASSETS_DIR)
     except Exception as exc:
         log_warning("Asset pack import failed for %s: %s", path, exc)
-        QMessageBox.warning(panel, "Import Asset Pack", "This asset pack could not be imported.")
+        err_msg = QCoreApplication.translate("AssetImporter", "This asset pack could not be imported.")
+        QMessageBox.warning(panel, dialog_title, err_msg)
         return
 
     panel.refresh_packs()
     index = panel.pack_combo.findData(str(result.path))
     if index >= 0:
         panel.pack_combo.setCurrentIndex(index)
-    details = "\n".join(result.detected_assets[:12]) or "No supported assets were detected yet."
+        
+    fallback_details = QCoreApplication.translate("AssetImporter", "No supported assets were detected yet.")
+    details = "\n".join(result.detected_assets[:12]) or fallback_details
+    
     if len(result.detected_assets) > 12:
-        details += f"\n...and {len(result.detected_assets) - 12} more"
+        more_prefix = QCoreApplication.translate("AssetImporter", "...and")
+        more_suffix = QCoreApplication.translate("AssetImporter", "more")
+        details += f"\n{more_prefix} {len(result.detected_assets) - 12} {more_suffix}"
+        
+    report_msg = QCoreApplication.translate("AssetImporter", "Imported {pack_name}.\n\nDetected assets:\n{pack_details}")
     QMessageBox.information(
         panel,
-        "Import Asset Pack",
-        f"Imported {result.name}.\n\nDetected assets:\n{details}",
+        dialog_title,
+        report_msg.format(pack_name=result.name, pack_details=details),
     )
 
 
 def import_analyzed_path(panel, path, add_to_desktop=False):
+    dialog_title = QCoreApplication.translate("AssetImporter", "Import Asset")
     analyzer = AssetAnalyzer()
     guesses = analyzer.analyze_path(path)
     if not guesses:
         log_warning("No supported asset type could be guessed for import path: %s", path)
-        QMessageBox.warning(panel, "Import Asset", "This file or folder is not a supported OpenAnima asset.")
+        unsupported_msg = QCoreApplication.translate("AssetImporter", "This file or folder is not a supported OpenAnima asset.")
+        QMessageBox.warning(panel, dialog_title, unsupported_msg)
         return
+
+    if add_to_desktop:
+        btn_text = QCoreApplication.translate("AssetImporter", "Add to Desktop")
+    else:
+        btn_text = QCoreApplication.translate("AssetImporter", "Import Asset")
 
     dialog = AssetSetupDialog(
         path,
         guesses,
         parent=panel,
-        primary_button_text="Add to Desktop" if add_to_desktop else "Import Asset",
+        primary_button_text=btn_text,
     )
     if dialog.exec() != QDialog.Accepted:
         return
@@ -95,7 +120,8 @@ def import_analyzed_path(panel, path, add_to_desktop=False):
     imported = panel.create_import_from_setup(Path(path), dialog.metadata(), dialog.asset_name())
     if imported is None:
         log_warning("Selected asset could not be imported: %s", path)
-        QMessageBox.warning(panel, "Import Asset", "This file could not be loaded.")
+        load_err = QCoreApplication.translate("AssetImporter", "This file could not be loaded.")
+        QMessageBox.warning(panel, dialog_title, load_err)
         return
 
     panel.refresh_packs()
@@ -123,10 +149,12 @@ def import_dropped_paths(panel, paths):
             continue
         unsupported.append(path.name)
     if unsupported:
+        dialog_title = QCoreApplication.translate("AssetImporter", "Import Asset")
+        warning_msg = QCoreApplication.translate("AssetImporter", "Some files are not supported:\n")
         QMessageBox.warning(
             panel,
-            "Import Asset",
-            "Some files are not supported:\n" + "\n".join(unsupported[:8]),
+            dialog_title,
+            warning_msg + "\n".join(unsupported[:8]),
         )
 
 
@@ -135,10 +163,11 @@ def create_import_from_setup(panel, path: Path, metadata: dict, asset_name: str)
     if path.is_file() and asset_type in {AssetType.GIF, AssetType.APNG, AssetType.WEBM, AssetType.STATIC_IMAGE}:
         return import_asset_to_assets(path, panel.active_pack_dir())
 
+    reason_text = QCoreApplication.translate("AssetImporter", "Confirmed in Asset Setup.")
     guess = AssetGuess(
         guessed_type=str(asset_type),
         confidence=1.0,
-        reasons=["Confirmed in Asset Setup."],
+        reasons=[reason_text],
         suggested_metadata=metadata,
     )
     return create_asset_folder_from_guess(path, panel.active_pack_dir(), guess, asset_name)
@@ -174,11 +203,12 @@ def configure_asset_path(panel, path):
         metadata = {"type": asset.type, "name": asset.name}
 
     if not guesses and asset is not None:
+        reason_existing = QCoreApplication.translate("AssetImporter", "Existing asset type.")
         guesses = [
             AssetGuess(
                 guessed_type=asset.type,
                 confidence=1.0,
-                reasons=["Existing asset type."],
+                reasons=[reason_existing],
                 suggested_metadata=metadata,
             )
         ]
@@ -191,7 +221,9 @@ def configure_asset_path(panel, path):
     saved_path = panel.save_asset_metadata(path, new_metadata, dialog.asset_name())
     if saved_path is None:
         log_warning("Asset metadata could not be saved: %s", path)
-        QMessageBox.warning(panel, "Edit Asset Metadata", "This asset metadata could not be saved.")
+        dialog_title = QCoreApplication.translate("AssetImporter", "Edit Asset Metadata")
+        save_err = QCoreApplication.translate("AssetImporter", "This asset metadata could not be saved.")
+        QMessageBox.warning(panel, dialog_title, save_err)
         return
 
     panel.refresh_packs()
@@ -201,25 +233,30 @@ def configure_asset_path(panel, path):
 
 def save_asset_metadata(panel, path: Path, metadata: dict, asset_name: str):
     asset_type = metadata.get("type")
+    dialog_title = QCoreApplication.translate("AssetImporter", "Edit Asset Metadata")
+    
     if path.is_dir():
         if asset_type in {AssetType.GIF, AssetType.APNG, AssetType.WEBM, AssetType.STATIC_IMAGE}:
             return path
         metadata_path = path / "asset.json"
         metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
         asset = detect_asset(path)
-        errors = validate_asset_metadata(asset) if asset is not None else ["Unable to read saved asset metadata."]
+        
+        fallback_validation_err = QCoreApplication.translate("AssetImporter", "Unable to read saved asset metadata.")
+        errors = validate_asset_metadata(asset) if asset is not None else [fallback_validation_err]
         if errors:
             log_warning("Saved asset metadata has validation errors for %s: %s", path, "; ".join(errors))
-            QMessageBox.warning(panel, "Edit Asset Metadata", "\n".join(errors))
+            QMessageBox.warning(panel, dialog_title, "\n".join(errors))
         return path
 
     if asset_type in {AssetType.GIF, AssetType.APNG, AssetType.WEBM, AssetType.STATIC_IMAGE}:
         return path
 
+    reason_configured = QCoreApplication.translate("AssetImporter", "Configured from an existing file asset.")
     guess = AssetGuess(
         guessed_type=str(asset_type),
         confidence=1.0,
-        reasons=["Configured from an existing file asset."],
+        reasons=[reason_configured],
         suggested_metadata=metadata,
     )
     return create_asset_folder_from_guess(path, panel.active_pack_dir(), guess, asset_name)
@@ -231,10 +268,13 @@ def offer_reload_running_overlays(panel, asset_path):
     if not matching:
         return
 
+    dialog_title = QCoreApplication.translate("AssetImporter", "Reload Asset")
+    question_text = QCoreApplication.translate("AssetImporter", "Reload running overlays for this asset?")
+    
     result = QMessageBox.question(
         panel,
-        "Reload Asset",
-        "Reload running overlays for this asset?",
+        dialog_title,
+        question_text,
         QMessageBox.Yes | QMessageBox.No,
         QMessageBox.Yes,
     )
@@ -244,7 +284,8 @@ def offer_reload_running_overlays(panel, asset_path):
     asset = detect_asset(asset_path)
     if asset is None:
         log_warning("Unable to reload asset definition: %s", asset_path)
-        QMessageBox.warning(panel, "Reload Asset", "Unable to reload this asset definition.")
+        err_msg = QCoreApplication.translate("AssetImporter", "Unable to reload this asset definition.")
+        QMessageBox.warning(panel, dialog_title, err_msg)
         return
 
     failed = []
@@ -253,7 +294,9 @@ def offer_reload_running_overlays(panel, asset_path):
             failed.append(window.asset.name)
     if failed:
         log_warning("Some overlays could not be reloaded for asset %s: %s", asset_path, ", ".join(failed))
-        QMessageBox.warning(panel, "Reload Asset", "Some overlays could not be reloaded and were kept unchanged.")
+        partial_err = QCoreApplication.translate("AssetImporter", "Some overlays could not be reloaded and were kept unchanged.")
+        QMessageBox.warning(panel, dialog_title, partial_err)
+        
     panel.refresh_active()
     if panel.selected_window in state.WINDOWS:
         panel.load_editor(panel.selected_window)

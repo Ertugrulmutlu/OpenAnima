@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QCoreApplication
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -51,7 +51,7 @@ def build_editor_tab(panel):
     content_layout.setSpacing(14)
 
     header_row = QHBoxLayout()
-    inspector_title = QLabel("Inspector")
+    inspector_title = QLabel(QCoreApplication.translate("InspectorTab", "Inspector"))
     inspector_title.setObjectName("SectionTitle")
 
     panel.saved_label = QLabel("")
@@ -66,17 +66,17 @@ def build_editor_tab(panel):
     panel.saved_timer.timeout.connect(lambda: panel.saved_label.setText(""))
 
     panel.editor_placeholder = panel.empty_state(
-        "Select an overlay to edit it.",
+        QCoreApplication.translate("InspectorTab", "Select an overlay to edit it."),
         " ",
         [],
     )
 
-    panel.selected_group = QGroupBox("Selected Overlay")
+    panel.selected_group = QGroupBox(QCoreApplication.translate("InspectorTab", "Selected Overlay"))
     selected_layout = QVBoxLayout(panel.selected_group)
     selected_layout.setContentsMargins(14, 18, 14, 14)
     selected_layout.setSpacing(6)
 
-    panel.editor_name = QLabel("Select an overlay to edit it.")
+    panel.editor_name = QLabel(QCoreApplication.translate("InspectorTab", "Select an overlay to edit it."))
     panel.editor_name.setObjectName("SubtleLabel")
 
     panel.editor_type = QLabel("")
@@ -85,21 +85,21 @@ def build_editor_tab(panel):
     selected_layout.addWidget(panel.editor_name)
     selected_layout.addWidget(panel.editor_type)
 
-    panel.overlay_controls_group = QGroupBox("Overlay Controls")
+    panel.overlay_controls_group = QGroupBox(QCoreApplication.translate("InspectorTab", "Overlay Controls"))
     overlay_controls_layout = QVBoxLayout(panel.overlay_controls_group)
     overlay_controls_layout.setContentsMargins(14, 18, 14, 14)
     overlay_controls_layout.setSpacing(10)
 
-    panel.visibility_check = QCheckBox("Visible")
-    panel.inspector_lock_button = QPushButton("Lock")
-    panel.inspector_edit_button = QPushButton("Edit Overlay")
-    panel.inspector_metadata_button = QPushButton("Asset Metadata")
-    panel.inspector_remove_button = QPushButton("Remove")
+    panel.visibility_check = QCheckBox(QCoreApplication.translate("InspectorTab", "Visible"))
+    panel.inspector_lock_button = QPushButton(QCoreApplication.translate("InspectorTab", "Lock"))
+    panel.inspector_edit_button = QPushButton(QCoreApplication.translate("InspectorTab", "Edit Overlay"))
+    panel.inspector_metadata_button = QPushButton(QCoreApplication.translate("InspectorTab", "Asset Metadata"))
+    panel.inspector_remove_button = QPushButton(QCoreApplication.translate("InspectorTab", "Remove"))
 
-    panel.prepare_button(panel.inspector_lock_button, 120, "Lock or unlock this overlay")
-    panel.prepare_button(panel.inspector_edit_button, 120, "Edit Overlay")
-    panel.prepare_button(panel.inspector_metadata_button, 120, "Edit Asset Metadata")
-    panel.prepare_button(panel.inspector_remove_button, 120, "Remove Overlay")
+    panel.prepare_button(panel.inspector_lock_button, 120, QCoreApplication.translate("InspectorTab", "Lock or unlock this overlay"))
+    panel.prepare_button(panel.inspector_edit_button, 120, QCoreApplication.translate("InspectorTab", "Edit Overlay"))
+    panel.prepare_button(panel.inspector_metadata_button, 120, QCoreApplication.translate("InspectorTab", "Edit Asset Metadata"))
+    panel.prepare_button(panel.inspector_remove_button, 120, QCoreApplication.translate("InspectorTab", "Remove Overlay"))
 
     panel.inspector_remove_button.setObjectName("DangerButton")
 
@@ -114,32 +114,32 @@ def build_editor_tab(panel):
     overlay_controls_layout.addWidget(panel.inspector_edit_button)
     overlay_controls_layout.addWidget(panel.inspector_metadata_button)
 
-    danger_label = QLabel("Danger zone")
+    danger_label = QLabel(QCoreApplication.translate("InspectorTab", "Danger zone"))
     danger_label.setObjectName("SubtleLabel")
 
     overlay_controls_layout.addSpacing(8)
     overlay_controls_layout.addWidget(danger_label)
     overlay_controls_layout.addWidget(panel.inspector_remove_button)
 
-    panel.scale_label = QLabel("Scale: 100%")
+    panel.scale_label = QLabel(QCoreApplication.translate("InspectorTab", "Scale: 100%"))
     panel.scale_slider = QSlider(Qt.Horizontal)
     panel.scale_slider.setRange(50, 150)
     panel.scale_slider.setTickInterval(10)
     panel.scale_slider.valueChanged.connect(panel.editor_scale_changed)
 
-    panel.opacity_label = QLabel("Opacity: 100%")
+    panel.opacity_label = QLabel(QCoreApplication.translate("InspectorTab", "Opacity: 100%"))
     panel.opacity_slider = QSlider(Qt.Horizontal)
     panel.opacity_slider.setRange(50, 100)
     panel.opacity_slider.setTickInterval(10)
     panel.opacity_slider.valueChanged.connect(panel.editor_opacity_changed)
 
-    panel.speed_label = QLabel("Speed: 100%")
+    panel.speed_label = QLabel(QCoreApplication.translate("InspectorTab", "Speed: 100%"))
     panel.speed_slider = QSlider(Qt.Horizontal)
     panel.speed_slider.setRange(25, 200)
     panel.speed_slider.setTickInterval(25)
     panel.speed_slider.valueChanged.connect(panel.editor_speed_changed)
 
-    panel.transform_group = QGroupBox("Appearance")
+    panel.transform_group = QGroupBox(QCoreApplication.translate("InspectorTab", "Appearance"))
     transform_layout = QVBoxLayout(panel.transform_group)
     transform_layout.setContentsMargins(14, 18, 14, 14)
     transform_layout.setSpacing(12)
@@ -150,18 +150,18 @@ def build_editor_tab(panel):
     panel.speed_row = panel.slider_row(panel.speed_label, panel.speed_slider)
     transform_layout.addWidget(panel.speed_row)
 
-    panel.top_check = QCheckBox("Always on top")
-    panel.click_check = QCheckBox("Click-through")
-    panel.lock_check = QCheckBox("Locked")
+    panel.top_check = QCheckBox(QCoreApplication.translate("InspectorTab", "Always on top"))
+    panel.click_check = QCheckBox(QCoreApplication.translate("InspectorTab", "Click-through"))
+    panel.lock_check = QCheckBox(QCoreApplication.translate("InspectorTab", "Locked"))
 
     panel.top_check.toggled.connect(panel.editor_top_changed)
     panel.click_check.toggled.connect(panel.editor_click_changed)
     panel.lock_check.toggled.connect(panel.editor_lock_changed)
 
-    panel.reload_button = QPushButton("Reload Asset")
+    panel.reload_button = QPushButton(QCoreApplication.translate("InspectorTab", "Reload Asset"))
     panel.reload_button.clicked.connect(panel.reload_selected_asset)
 
-    panel.behavior_group = QGroupBox("Interaction")
+    panel.behavior_group = QGroupBox(QCoreApplication.translate("InspectorTab", "Interaction"))
     behavior_layout = QVBoxLayout(panel.behavior_group)
     behavior_layout.setContentsMargins(14, 18, 14, 14)
     behavior_layout.setSpacing(10)
@@ -170,25 +170,25 @@ def build_editor_tab(panel):
     behavior_layout.addWidget(panel.click_check)
     behavior_layout.addWidget(panel.reload_button)
 
-    panel.action_group = QGroupBox("Actions")
+    panel.action_group = QGroupBox(QCoreApplication.translate("InspectorTab", "Actions"))
     action_layout = QVBoxLayout(panel.action_group)
     action_layout.setContentsMargins(14, 18, 14, 14)
     action_layout.setSpacing(10)
 
-    panel.action_enabled_check = QCheckBox("Enable action")
+    panel.action_enabled_check = QCheckBox(QCoreApplication.translate("InspectorTab", "Enable action"))
 
     panel.action_type_combo = QComboBox()
-    panel.action_type_combo.addItem("Open file", ACTION_OPEN_FILE)
-    panel.action_type_combo.addItem("Open folder", ACTION_OPEN_FOLDER)
-    panel.action_type_combo.addItem("Open URL", ACTION_OPEN_URL)
-    panel.action_type_combo.addItem("Launch application", ACTION_LAUNCH_APP)
+    panel.action_type_combo.addItem(QCoreApplication.translate("InspectorTab", "Open file"), ACTION_OPEN_FILE)
+    panel.action_type_combo.addItem(QCoreApplication.translate("InspectorTab", "Open folder"), ACTION_OPEN_FOLDER)
+    panel.action_type_combo.addItem(QCoreApplication.translate("InspectorTab", "Open URL"), ACTION_OPEN_URL)
+    panel.action_type_combo.addItem(QCoreApplication.translate("InspectorTab", "Launch application"), ACTION_LAUNCH_APP)
 
     panel.action_target_edit = QLineEdit()
-    panel.action_target_edit.setPlaceholderText("Path or https:// URL")
+    panel.action_target_edit.setPlaceholderText(QCoreApplication.translate("InspectorTab", "Path or https:// URL"))
 
     action_target_row = QHBoxLayout()
-    panel.action_browse_button = QPushButton("Browse")
-    panel.action_test_button = QPushButton("Run action")
+    panel.action_browse_button = QPushButton(QCoreApplication.translate("InspectorTab", "Browse"))
+    panel.action_test_button = QPushButton(QCoreApplication.translate("InspectorTab", "Run action"))
 
     action_target_row.addWidget(panel.action_target_edit, 1)
     action_target_row.addWidget(panel.action_browse_button)
@@ -199,8 +199,8 @@ def build_editor_tab(panel):
 
     action_form = QFormLayout()
     action_form.addRow("", panel.action_enabled_check)
-    action_form.addRow("Type", panel.action_type_combo)
-    action_form.addRow("Target", action_target_row)
+    action_form.addRow(QCoreApplication.translate("InspectorTab", "Type"), panel.action_type_combo)
+    action_form.addRow(QCoreApplication.translate("InspectorTab", "Target"), action_target_row)
 
     action_layout.addLayout(action_form)
     action_layout.addLayout(action_buttons)
@@ -211,13 +211,13 @@ def build_editor_tab(panel):
     panel.action_browse_button.clicked.connect(panel.browse_action_target)
     panel.action_test_button.clicked.connect(panel.test_selected_action)
 
-    panel.movement_group = QGroupBox("Movement / Physics")
+    panel.movement_group = QGroupBox(QCoreApplication.translate("InspectorTab", "Movement / Physics"))
     movement_layout = QVBoxLayout(panel.movement_group)
     movement_layout.setContentsMargins(14, 18, 14, 14)
     movement_layout.setSpacing(10)
 
-    panel.movement_enabled_check = QCheckBox("Enable movement")
-    panel.movement_bounce_check = QCheckBox("Bounce on screen edges")
+    panel.movement_enabled_check = QCheckBox(QCoreApplication.translate("InspectorTab", "Enable movement"))
+    panel.movement_bounce_check = QCheckBox(QCoreApplication.translate("InspectorTab", "Bounce on screen edges"))
     panel.movement_vx_spin = panel.movement_spin(-500.0, 500.0, 1.0)
     panel.movement_vy_spin = panel.movement_spin(-500.0, 500.0, 1.0)
     panel.movement_gravity_spin = panel.movement_spin(-500.0, 500.0, 1.0)
@@ -225,11 +225,11 @@ def build_editor_tab(panel):
 
     movement_form = QFormLayout()
     movement_form.addRow("", panel.movement_enabled_check)
-    movement_form.addRow("Velocity X", panel.movement_vx_spin)
-    movement_form.addRow("Velocity Y", panel.movement_vy_spin)
+    movement_form.addRow(QCoreApplication.translate("InspectorTab", "Velocity X"), panel.movement_vx_spin)
+    movement_form.addRow(QCoreApplication.translate("InspectorTab", "Velocity Y"), panel.movement_vy_spin)
     movement_form.addRow("", panel.movement_bounce_check)
-    movement_form.addRow("Gravity", panel.movement_gravity_spin)
-    movement_form.addRow("Friction", panel.movement_friction_spin)
+    movement_form.addRow(QCoreApplication.translate("InspectorTab", "Gravity"), panel.movement_gravity_spin)
+    movement_form.addRow(QCoreApplication.translate("InspectorTab", "Friction"), panel.movement_friction_spin)
 
     movement_layout.addLayout(movement_form)
 
@@ -246,12 +246,12 @@ def build_editor_tab(panel):
         else:
             widget.valueChanged.connect(panel.editor_movement_changed)
 
-    panel.spritesheet_group = QGroupBox("Advanced")
+    panel.spritesheet_group = QGroupBox(QCoreApplication.translate("InspectorTab", "Advanced"))
     panel.spritesheet_layout = QVBoxLayout(panel.spritesheet_group)
     panel.spritesheet_layout.setContentsMargins(14, 18, 14, 14)
     panel.spritesheet_layout.setSpacing(10)
 
-    panel.composite_group = QGroupBox("Advanced")
+    panel.composite_group = QGroupBox(QCoreApplication.translate("InspectorTab", "Advanced"))
     panel.composite_layout = QVBoxLayout(panel.composite_group)
     panel.composite_layout.setContentsMargins(14, 18, 14, 14)
     panel.composite_layout.setSpacing(12)
@@ -290,7 +290,7 @@ def movement_spin(panel, minimum, maximum, step):
     spin.setRange(minimum, maximum)
     spin.setSingleStep(step)
     spin.setDecimals(1)
-    spin.setSuffix(" px/s" if maximum > 50 else "")
+    spin.setSuffix(QCoreApplication.translate("InspectorTab", " px/s") if maximum > 50 else "")
     return spin
 
 
@@ -336,8 +336,10 @@ def load_editor(panel, window):
         if enabled:
             window.set_selected(True)
 
-        panel.editor_name.setText(window.asset.name if enabled else "Select an overlay to edit it.")
-        panel.editor_type.setText(f"Type: {window.asset_type}" if enabled else "")
+        panel.editor_name.setText(window.asset.name if enabled else QCoreApplication.translate("InspectorTab", "Select an overlay to edit it."))
+        
+        prefix_type = QCoreApplication.translate("InspectorTab", "Type:")
+        panel.editor_type.setText(f"{prefix_type} {window.asset_type}" if enabled else "")
 
         panel.editor_placeholder.setVisible(not enabled)
         panel.selected_group.setVisible(enabled)
@@ -387,7 +389,10 @@ def load_editor(panel, window):
         panel.lock_check.setChecked(window.locked if enabled else False)
         panel.visibility_check.setChecked(bool(getattr(window, "intended_visible", False)) if enabled else False)
 
-        panel.inspector_lock_button.setText("Unlock" if enabled and window.locked else "Lock")
+        if enabled and window.locked:
+            panel.inspector_lock_button.setText(QCoreApplication.translate("InspectorTab", "Unlock"))
+        else:
+            panel.inspector_lock_button.setText(QCoreApplication.translate("InspectorTab", "Lock"))
 
         action = normalized_action_config(window.action if enabled else None)
         panel.action_enabled_check.setChecked(action["enabled"])
@@ -404,9 +409,13 @@ def load_editor(panel, window):
         panel.movement_gravity_spin.setValue(movement["gravity"])
         panel.movement_friction_spin.setValue(movement["friction"])
 
-        panel.scale_label.setText(f"Scale: {panel.scale_slider.value()}%")
-        panel.opacity_label.setText(f"Opacity: {panel.opacity_slider.value()}%")
-        panel.speed_label.setText(f"Speed: {panel.speed_slider.value()}%")
+        prefix_scale = QCoreApplication.translate("InspectorTab", "Scale:")
+        prefix_opacity = QCoreApplication.translate("InspectorTab", "Opacity:")
+        prefix_speed = QCoreApplication.translate("InspectorTab", "Speed:")
+
+        panel.scale_label.setText(f"{prefix_scale} {panel.scale_slider.value()}%")
+        panel.opacity_label.setText(f"{prefix_opacity} {panel.opacity_slider.value()}%")
+        panel.speed_label.setText(f"{prefix_speed} {panel.speed_slider.value()}%")
 
         panel.rebuild_runtime_editor(window if enabled else None)
 
@@ -473,7 +482,7 @@ def rebuild_runtime_editor(panel, window):
 
         panel.animation_combo.currentTextChanged.connect(panel.editor_animation_changed)
 
-        panel.spritesheet_layout.addWidget(QLabel("Animation"))
+        panel.spritesheet_layout.addWidget(QLabel(QCoreApplication.translate("InspectorTab", "Animation")))
         panel.spritesheet_layout.addWidget(panel.animation_combo)
         panel.spritesheet_group.show()
         return
@@ -489,14 +498,15 @@ def clear_layout(panel, layout):
 
 
 def display_layer_name(panel, name):
-    return str(name).replace("_", " ").strip().title() or "Layer"
+    fallback_layer = QCoreApplication.translate("InspectorTab", "Layer")
+    return str(name).replace("_", " ").strip().title() or fallback_layer
 
 
 def mark_saved(panel):
     if panel.loading_editor:
         return
 
-    panel.saved_label.setText("Saved")
+    panel.saved_label.setText(QCoreApplication.translate("InspectorTab", "Saved"))
     panel.saved_timer.start(1400)
 
 
@@ -515,7 +525,9 @@ def editor_animation_changed(panel, animation_name):
     if not panel.loading_editor and panel.selected_window in state.WINDOWS:
         if not panel.selected_window.set_animation(animation_name):
             log_warning("Unable to switch to animation: %s", animation_name)
-            QMessageBox.warning(panel, "Animation", f"Unable to switch to animation: {animation_name}")
+            err_title = QCoreApplication.translate("InspectorTab", "Animation")
+            err_msg = QCoreApplication.translate("InspectorTab", "Unable to switch to animation:")
+            QMessageBox.warning(panel, err_title, f"{err_msg} {animation_name}")
         else:
             panel.mark_saved()
 
@@ -526,14 +538,18 @@ def reload_selected_asset(panel):
 
     asset = detect_asset(panel.selected_window.asset_path)
 
+    dialog_title = QCoreApplication.translate("InspectorTab", "Reload Asset")
+
     if asset is None:
         log_warning("Unable to reload selected asset definition: %s", panel.selected_window.asset_path)
-        QMessageBox.warning(panel, "Reload Asset", "Unable to reload this asset definition.")
+        err_msg1 = QCoreApplication.translate("InspectorTab", "Unable to reload this asset definition.")
+        QMessageBox.warning(panel, dialog_title, err_msg1)
         return
 
     if not panel.selected_window.reload_asset_definition(asset):
         log_warning("Reload failed for selected asset: %s", panel.selected_window.asset_path)
-        QMessageBox.warning(panel, "Reload Asset", "Reload failed. The running overlay was kept unchanged.")
+        err_msg2 = QCoreApplication.translate("InspectorTab", "Reload failed. The running overlay was kept unchanged.")
+        QMessageBox.warning(panel, dialog_title, err_msg2)
         return
 
     panel.load_editor(panel.selected_window)
@@ -541,7 +557,8 @@ def reload_selected_asset(panel):
 
 
 def editor_scale_changed(panel, value):
-    panel.scale_label.setText(f"Scale: {value}%")
+    prefix_scale = QCoreApplication.translate("InspectorTab", "Scale:")
+    panel.scale_label.setText(f"{prefix_scale} {value}%")
 
     if not panel.loading_editor and panel.selected_window in state.WINDOWS:
         panel.selected_window.set_scale(value)
@@ -549,7 +566,8 @@ def editor_scale_changed(panel, value):
 
 
 def editor_opacity_changed(panel, value):
-    panel.opacity_label.setText(f"Opacity: {value}%")
+    prefix_opacity = QCoreApplication.translate("InspectorTab", "Opacity:")
+    panel.opacity_label.setText(f"{prefix_opacity} {value}%")
 
     if not panel.loading_editor and panel.selected_window in state.WINDOWS:
         panel.selected_window.set_opacity_percent(value)
@@ -557,7 +575,8 @@ def editor_opacity_changed(panel, value):
 
 
 def editor_speed_changed(panel, value):
-    panel.speed_label.setText(f"Speed: {value}%")
+    prefix_speed = QCoreApplication.translate("InspectorTab", "Speed:")
+    panel.speed_label.setText(f"{prefix_speed} {value}%")
 
     if not panel.loading_editor and panel.selected_window in state.WINDOWS:
         panel.selected_window.set_speed(value)
@@ -591,7 +610,12 @@ def editor_visibility_changed(panel, checked):
 def editor_lock_changed(panel, checked):
     if not panel.loading_editor and panel.selected_window in state.WINDOWS:
         panel.selected_window.locked = checked
-        panel.inspector_lock_button.setText("Unlock" if checked else "Lock")
+        
+        if checked:
+            panel.inspector_lock_button.setText(QCoreApplication.translate("InspectorTab", "Unlock"))
+        else:
+            panel.inspector_lock_button.setText(QCoreApplication.translate("InspectorTab", "Lock"))
+            
         persist_runtime_state("overlay_lock_changed")
         panel.refresh_active()
         panel.mark_saved()
@@ -613,26 +637,34 @@ def editor_action_changed(panel):
 
 def browse_action_target(panel):
     action_type = panel.action_type_combo.currentData()
+    dialog_title = QCoreApplication.translate("InspectorTab", "Action")
 
     if action_type == ACTION_OPEN_URL:
-        QMessageBox.information(panel, "Action", "Enter an http or https URL in the target field.")
+        info_msg = QCoreApplication.translate("InspectorTab", "Enter an http or https URL in the target field.")
+        QMessageBox.information(panel, dialog_title, info_msg)
         return
 
     if action_type == ACTION_OPEN_FOLDER:
-        path = QFileDialog.getExistingDirectory(panel, "Choose Action Folder", str(BASE_DIR))
+        path = QFileDialog.getExistingDirectory(
+            panel, 
+            QCoreApplication.translate("InspectorTab", "Choose Action Folder"), 
+            str(BASE_DIR)
+        )
     elif action_type == ACTION_LAUNCH_APP:
+        filter_apps = QCoreApplication.translate("InspectorTab", "Applications (*.exe);;All files (*)")
         path, _ = QFileDialog.getOpenFileName(
             panel,
-            "Choose Application",
+            QCoreApplication.translate("InspectorTab", "Choose Application"),
             str(BASE_DIR),
-            "Applications (*.exe);;All files (*)",
+            filter_apps,
         )
     else:
+        filter_all = QCoreApplication.translate("InspectorTab", "All files (*)")
         path, _ = QFileDialog.getOpenFileName(
             panel,
-            "Choose Action File",
+            QCoreApplication.translate("InspectorTab", "Choose Action File"),
             str(BASE_DIR),
-            "All files (*)",
+            filter_all,
         )
 
     if path:
@@ -649,7 +681,8 @@ def test_selected_action(panel):
     ok, message = panel.selected_window.run_action()
 
     if not ok:
-        QMessageBox.warning(panel, "Run Action", message)
+        err_title = QCoreApplication.translate("InspectorTab", "Run Action")
+        QMessageBox.warning(panel, err_title, message)
 
 
 def current_movement_config(panel):
