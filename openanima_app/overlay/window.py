@@ -22,7 +22,11 @@ from ..runtime import state
 from ..runtime.action_runner import normalized_action_config
 from ..runtime.config import window_config_visible
 from ..runtime.logging import log_info, log_warning
-from ..runtime.overlay_ids import next_runtime_id, persistent_id_from_config, normalize_api_alias
+from ..runtime.overlay_ids import (
+    next_runtime_id,
+    persistent_id_from_config,
+    normalize_api_alias,
+)
 from ..runtime.paths import BASE_DIR
 from ..runtime.session import apply_window_config, persist_runtime_state
 from .movement import normalized_movement_config
@@ -133,6 +137,7 @@ class OverlayWindow(QWidget):
         self.movement = normalized_movement_config(None)
         self.runtime_velocity_x = 0.0
         self.runtime_velocity_y = 0.0
+        self.monitor_id = None
         self.movement_timer = QTimer(self)
         self.movement_timer.setInterval(33)
         self.movement_timer.timeout.connect(self.advance_movement)
@@ -144,13 +149,17 @@ class OverlayWindow(QWidget):
         self.setContentsMargins(0, 0, 0, 0)
         self.setStyleSheet("background: transparent; border: 0; margin: 0; padding: 0;")
 
-        apply_window_config(self, config, restore_geometry=False, restore_visibility=False)
+        apply_window_config(
+            self, config, restore_geometry=False, restore_visibility=False
+        )
 
         if not self.load_asset_content():
             detail = self.load_error or f"Unable to load asset: {self.asset_path}"
             raise ValueError(detail)
 
-        apply_window_config(self, config, restore_geometry=True, restore_visibility=False)
+        apply_window_config(
+            self, config, restore_geometry=True, restore_visibility=False
+        )
         self.start_playback()
 
     def load_asset_content(self):
@@ -218,7 +227,9 @@ class OverlayWindow(QWidget):
             self.current_pixmap.fill(Qt.transparent)
             self.base_size = QSize(*DEFAULT_VIDEO_SIZE)
             self.apply_scale()
-            log_warning("WebM playback uses Qt Multimedia; alpha transparency depends on the system Qt backend.")
+            log_warning(
+                "WebM playback uses Qt Multimedia; alpha transparency depends on the system Qt backend."
+            )
             return True
 
         if self.asset_type == AssetType.STATIC_IMAGE:
@@ -251,11 +262,16 @@ class OverlayWindow(QWidget):
             metadata = self.asset.metadata or {}
             frames = load_sprite_strip_frames(self.asset_path, metadata)
             if not frames:
-                log_warning("No readable sprite strip frames in asset skipped: %s", self.asset_path)
+                log_warning(
+                    "No readable sprite strip frames in asset skipped: %s",
+                    self.asset_path,
+                )
                 return False
             fps = metadata.get("fps", self.asset.fps or 8)
             loop = bool(metadata.get("loop", True))
-            self.sprite_player = SpriteAnimationPlayer(frames, fps=fps, loop=loop, parent=self)
+            self.sprite_player = SpriteAnimationPlayer(
+                frames, fps=fps, loop=loop, parent=self
+            )
             self.sprite_player.set_speed(self.speed)
             self.sprite_player.pixmap_changed.connect(self.update_from_sprite_player)
             self.current_pixmap = frames[0]
@@ -265,12 +281,19 @@ class OverlayWindow(QWidget):
 
         if self.asset_type == AssetType.SPRITESHEET:
             metadata = self.asset.metadata or {}
-            frames, fps, loop, selected_name = load_spritesheet_frames(self.asset_path, metadata, self.current_animation)
+            frames, fps, loop, selected_name = load_spritesheet_frames(
+                self.asset_path, metadata, self.current_animation
+            )
             if not frames:
-                log_warning("No readable spritesheet frames in asset skipped: %s", self.asset_path)
+                log_warning(
+                    "No readable spritesheet frames in asset skipped: %s",
+                    self.asset_path,
+                )
                 return False
             self.current_animation = selected_name
-            self.sprite_player = SpriteAnimationPlayer(frames, fps=fps, loop=loop, parent=self)
+            self.sprite_player = SpriteAnimationPlayer(
+                frames, fps=fps, loop=loop, parent=self
+            )
             self.sprite_player.set_speed(self.speed)
             self.sprite_player.pixmap_changed.connect(self.update_from_sprite_player)
             self.current_pixmap = frames[0]
@@ -282,7 +305,10 @@ class OverlayWindow(QWidget):
             metadata = self._composite_metadata_with_runtime_values()
             self.composite_renderer = CompositeUIRenderer(self.asset_path, metadata)
             if not self.composite_renderer.layers:
-                log_warning("No readable composite_ui layers in asset skipped: %s", self.asset_path)
+                log_warning(
+                    "No readable composite_ui layers in asset skipped: %s",
+                    self.asset_path,
+                )
                 return False
             self.current_pixmap = self.composite_renderer.render()
             self.base_size = self.current_pixmap.size()
@@ -375,7 +401,11 @@ class OverlayWindow(QWidget):
 
     def available_animations(self):
         animations = (self.asset.metadata or {}).get("animations")
-        return list(animations.keys()) if self.asset_type == AssetType.SPRITESHEET and isinstance(animations, dict) else []
+        return (
+            list(animations.keys())
+            if self.asset_type == AssetType.SPRITESHEET and isinstance(animations, dict)
+            else []
+        )
 
     def set_layer_value(self, layer_name, value):
         if self.asset_type != AssetType.COMPOSITE_UI:
@@ -383,7 +413,9 @@ class OverlayWindow(QWidget):
         value = min(1.0, max(0.0, float(value)))
         self.layer_values[str(layer_name)] = value
         if self.composite_renderer is not None:
-            self.current_pixmap = self.composite_renderer.set_layer_value(str(layer_name), value)
+            self.current_pixmap = self.composite_renderer.set_layer_value(
+                str(layer_name), value
+            )
             self.update()
         persist_runtime_state("layer_values_changed")
 
@@ -397,11 +429,15 @@ class OverlayWindow(QWidget):
             self.sprite_player.stop()
             self.sprite_player.deleteLater()
             self.sprite_player = None
-        frames, fps, loop, selected_name = load_spritesheet_frames(self.asset_path, self.asset.metadata or {}, animation_name)
+        frames, fps, loop, selected_name = load_spritesheet_frames(
+            self.asset_path, self.asset.metadata or {}, animation_name
+        )
         if not frames:
             return False
         self.current_animation = selected_name
-        self.sprite_player = SpriteAnimationPlayer(frames, fps=fps, loop=loop, parent=self)
+        self.sprite_player = SpriteAnimationPlayer(
+            frames, fps=fps, loop=loop, parent=self
+        )
         self.sprite_player.set_speed(self.speed)
         self.sprite_player.pixmap_changed.connect(self.update_from_sprite_player)
         self.current_pixmap = frames[0]
@@ -513,6 +549,25 @@ class OverlayWindow(QWidget):
         self.setFixedSize(width, height)
         self.move(self.clamped_position(self.pos()))
 
+    def move_to_monitor(self, monitor_id=None):
+        from .window_flags import center_on_screen, screen_by_id, screen_identifier
+
+        screen = screen_by_id(monitor_id) if monitor_id else None
+        if screen is None:
+            if monitor_id:
+                # requested monitor is unavailable; fallback to primary screen
+                screen = QApplication.primaryScreen()
+            else:
+                screen = None
+
+        if screen is not None:
+            self.monitor_id = screen_identifier(screen) or self.monitor_id
+            self.move(center_on_screen(self, screen))
+        elif monitor_id is None:
+            self.monitor_id = None
+
+        persist_runtime_state("overlay_monitor_changed")
+
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.LeftButton and event.modifiers() & Qt.ControlModifier:
             ok, message = self.run_action()
@@ -529,7 +584,9 @@ class OverlayWindow(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton and not self.locked:
-            self.drag_offset = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            self.drag_offset = (
+                event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            )
             event.accept()
             return
 
@@ -542,7 +599,11 @@ class OverlayWindow(QWidget):
 
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton and not self.locked:
-            self.move(self.clamped_position(event.globalPosition().toPoint() - self.drag_offset))
+            self.move(
+                self.clamped_position(
+                    event.globalPosition().toPoint() - self.drag_offset
+                )
+            )
             event.accept()
             return
 
@@ -569,7 +630,9 @@ class OverlayWindow(QWidget):
         )
         if path:
             if state.CONTROL_PANEL is not None:
-                state.CONTROL_PANEL.import_analyzed_path(Path(path), add_to_desktop=True)
+                state.CONTROL_PANEL.import_analyzed_path(
+                    Path(path), add_to_desktop=True
+                )
             else:
                 add_window(path)
 

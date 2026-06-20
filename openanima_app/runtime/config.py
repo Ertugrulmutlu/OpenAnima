@@ -32,6 +32,7 @@ WINDOW_CONFIG_KEYS = {
     "current_animation",
     "action",
     "movement",
+    "monitor_id",
     "visible",
     "intended_visible",
 }
@@ -63,7 +64,9 @@ def default_config():
 
 def corrupt_config_backup_path(config_path):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return config_path.with_name(f"{config_path.stem}.corrupt.{timestamp}{config_path.suffix}")
+    return config_path.with_name(
+        f"{config_path.stem}.corrupt.{timestamp}{config_path.suffix}"
+    )
 
 
 def backup_corrupt_config(config_path):
@@ -196,14 +199,18 @@ def normalize_config_data(data):
     elif isinstance(data, dict):
         schema_version = data.get("schema_version", 0)
         if schema_version not in (0, CONFIG_SCHEMA_VERSION):
-            config_warning(f"Config schema version {schema_version} is newer than supported; attempting safe load.")
+            config_warning(
+                f"Config schema version {schema_version} is newer than supported; attempting safe load."
+            )
 
         asset_root = data.get("asset_root")
         ui = normalize_ui_config(data.get("ui"))
         local_api = normalize_local_api_config(data.get("local_api"))
         raw_windows = data.get("windows", [])
         if not isinstance(raw_windows, list):
-            config_warning("Config windows field was invalid; starting with no saved overlays.")
+            config_warning(
+                "Config windows field was invalid; starting with no saved overlays."
+            )
             raw_windows = []
     else:
         config_warning("Config root was invalid; starting with safe defaults.")

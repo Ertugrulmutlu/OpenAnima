@@ -2,6 +2,23 @@
 
 All notable changes to OpenAnima will be documented in this file.
 
+## v1.1
+
+### Added
+
+- Multi-monitor overlay support.
+- Ability to move overlays beyond the primary display.
+- Monitor/display selection in the main UI.
+- Safer overlay placement/fallback behavior when displays change.
+
+### Fixed
+
+- Fixed overlay movement being restricted to the primary display bounds.
+
+### Changed
+
+- Improved overlay positioning behavior across desktop display layouts.
+
 ## v1.0.0
 
 OpenAnima v1.0.0 is the first public-ready release of the Windows desktop overlay engine.

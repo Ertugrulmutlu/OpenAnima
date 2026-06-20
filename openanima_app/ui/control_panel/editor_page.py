@@ -1,5 +1,6 @@
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
+    QApplication,
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
@@ -96,7 +97,9 @@ def build_editor_tab(panel):
     panel.inspector_metadata_button = QPushButton("Asset Metadata")
     panel.inspector_remove_button = QPushButton("Remove")
 
-    panel.prepare_button(panel.inspector_lock_button, 120, "Lock or unlock this overlay")
+    panel.prepare_button(
+        panel.inspector_lock_button, 120, "Lock or unlock this overlay"
+    )
     panel.prepare_button(panel.inspector_edit_button, 120, "Edit Overlay")
     panel.prepare_button(panel.inspector_metadata_button, 120, "Edit Asset Metadata")
     panel.prepare_button(panel.inspector_remove_button, 120, "Remove Overlay")
@@ -106,7 +109,9 @@ def build_editor_tab(panel):
     panel.visibility_check.toggled.connect(panel.editor_visibility_changed)
     panel.inspector_lock_button.clicked.connect(panel.toggle_selected_lock)
     panel.inspector_edit_button.clicked.connect(panel.focus_selected_overlay)
-    panel.inspector_metadata_button.clicked.connect(panel.configure_selected_overlay_asset)
+    panel.inspector_metadata_button.clicked.connect(
+        panel.configure_selected_overlay_asset
+    )
     panel.inspector_remove_button.clicked.connect(panel.remove_selected_overlay)
 
     overlay_controls_layout.addWidget(panel.visibility_check)
@@ -145,7 +150,9 @@ def build_editor_tab(panel):
     transform_layout.setSpacing(12)
 
     transform_layout.addWidget(panel.slider_row(panel.scale_label, panel.scale_slider))
-    transform_layout.addWidget(panel.slider_row(panel.opacity_label, panel.opacity_slider))
+    transform_layout.addWidget(
+        panel.slider_row(panel.opacity_label, panel.opacity_slider)
+    )
 
     panel.speed_row = panel.slider_row(panel.speed_label, panel.speed_slider)
     transform_layout.addWidget(panel.speed_row)
@@ -160,6 +167,20 @@ def build_editor_tab(panel):
 
     panel.reload_button = QPushButton("Reload Asset")
     panel.reload_button.clicked.connect(panel.reload_selected_asset)
+
+    panel.monitor_row = QWidget()
+    panel.monitor_row.setObjectName("EditorRow")
+    monitor_row_layout = QHBoxLayout(panel.monitor_row)
+    monitor_row_layout.setContentsMargins(0, 0, 0, 0)
+    monitor_row_layout.setSpacing(8)
+    panel.monitor_label = QLabel("Overlay monitor")
+    panel.monitor_label.setObjectName("SubtleLabel")
+    panel.monitor_combo = QComboBox()
+    panel.monitor_combo.currentIndexChanged.connect(panel.editor_monitor_changed)
+    monitor_row_layout.addWidget(panel.monitor_label)
+    monitor_row_layout.addWidget(panel.monitor_combo, 1)
+
+    overlay_controls_layout.addWidget(panel.monitor_row)
 
     panel.behavior_group = QGroupBox("Interaction")
     behavior_layout = QVBoxLayout(panel.behavior_group)
@@ -303,6 +324,7 @@ def set_editor_signals_blocked(panel, blocked):
         panel.click_check,
         panel.lock_check,
         panel.visibility_check,
+        panel.monitor_combo,
         panel.action_enabled_check,
         panel.action_type_combo,
         panel.action_target_edit,
@@ -336,7 +358,9 @@ def load_editor(panel, window):
         if enabled:
             window.set_selected(True)
 
-        panel.editor_name.setText(window.asset.name if enabled else "Select an overlay to edit it.")
+        panel.editor_name.setText(
+            window.asset.name if enabled else "Select an overlay to edit it."
+        )
         panel.editor_type.setText(f"Type: {window.asset_type}" if enabled else "")
 
         panel.editor_placeholder.setVisible(not enabled)
@@ -385,9 +409,13 @@ def load_editor(panel, window):
         panel.top_check.setChecked(window.always_on_top if enabled else False)
         panel.click_check.setChecked(window.click_through if enabled else False)
         panel.lock_check.setChecked(window.locked if enabled else False)
-        panel.visibility_check.setChecked(bool(getattr(window, "intended_visible", False)) if enabled else False)
+        panel.visibility_check.setChecked(
+            bool(getattr(window, "intended_visible", False)) if enabled else False
+        )
 
-        panel.inspector_lock_button.setText("Unlock" if enabled and window.locked else "Lock")
+        panel.inspector_lock_button.setText(
+            "Unlock" if enabled and window.locked else "Lock"
+        )
 
         action = normalized_action_config(window.action if enabled else None)
         panel.action_enabled_check.setChecked(action["enabled"])
@@ -399,6 +427,8 @@ def load_editor(panel, window):
         movement = normalized_movement_config(window.movement if enabled else None)
         panel.movement_enabled_check.setChecked(movement["enabled"])
         panel.movement_bounce_check.setChecked(movement["bounce"])
+
+        panel.refresh_monitor_combo(window if enabled else None)
         panel.movement_vx_spin.setValue(movement["velocity_x"])
         panel.movement_vy_spin.setValue(movement["velocity_y"])
         panel.movement_gravity_spin.setValue(movement["gravity"])
@@ -492,6 +522,64 @@ def display_layer_name(panel, name):
     return str(name).replace("_", " ").strip().title() or "Layer"
 
 
+def monitor_display_label(screen, index, is_primary):
+    screen_name = screen.name() if hasattr(screen, "name") else ""
+    geometry = screen.geometry()
+    label = screen_name.strip() or f"Display {index}"
+    line = f"{label} - {geometry.width()}x{geometry.height()}"
+    if is_primary:
+        line += " - Primary"
+    return line
+
+
+def monitor_list():
+    screens = QApplication.screens()
+    output = []
+    primary = QApplication.primaryScreen()
+    for index, screen in enumerate(screens, start=1):
+        screen_id = screen.name() if hasattr(screen, "name") else ""
+        if not screen_id:
+            screen_id = f"openanima-monitor-{index}"
+        output.append(
+            (screen_id, monitor_display_label(screen, index, screen is primary))
+        )
+    return output
+
+
+def refresh_monitor_combo(panel, window=None):
+    is_enabled = window is not None
+    panel.monitor_combo.blockSignals(True)
+    panel.monitor_combo.clear()
+    panel.monitor_combo.addItem("Auto / Last used", None)
+
+    entries = monitor_list()
+    primary_id = (
+        QApplication.primaryScreen().name()
+        if QApplication.primaryScreen()
+        and hasattr(QApplication.primaryScreen(), "name")
+        else ""
+    )
+    if primary_id:
+        panel.monitor_combo.addItem("Primary display", primary_id)
+
+    for monitor_id, label in entries:
+        if monitor_id == primary_id:
+            continue
+        panel.monitor_combo.addItem(label, monitor_id)
+
+    if window is not None and getattr(window, "monitor_id", None):
+        index = panel.monitor_combo.findData(window.monitor_id)
+        if index >= 0:
+            panel.monitor_combo.setCurrentIndex(index)
+        else:
+            panel.monitor_combo.setCurrentIndex(0)
+    else:
+        panel.monitor_combo.setCurrentIndex(0)
+
+    panel.monitor_combo.setEnabled(is_enabled)
+    panel.monitor_combo.blockSignals(False)
+
+
 def mark_saved(panel):
     if panel.loading_editor:
         return
@@ -508,14 +596,18 @@ def editor_layer_value_changed(panel, layer_name, slider_value, label, display_n
             panel.selected_window.set_layer_value(layer_name, slider_value / 100)
             panel.mark_saved()
         except Exception as exc:
-            log_warning("Unable to update composite layer value %s: %s", layer_name, exc)
+            log_warning(
+                "Unable to update composite layer value %s: %s", layer_name, exc
+            )
 
 
 def editor_animation_changed(panel, animation_name):
     if not panel.loading_editor and panel.selected_window in state.WINDOWS:
         if not panel.selected_window.set_animation(animation_name):
             log_warning("Unable to switch to animation: %s", animation_name)
-            QMessageBox.warning(panel, "Animation", f"Unable to switch to animation: {animation_name}")
+            QMessageBox.warning(
+                panel, "Animation", f"Unable to switch to animation: {animation_name}"
+            )
         else:
             panel.mark_saved()
 
@@ -527,13 +619,24 @@ def reload_selected_asset(panel):
     asset = detect_asset(panel.selected_window.asset_path)
 
     if asset is None:
-        log_warning("Unable to reload selected asset definition: %s", panel.selected_window.asset_path)
-        QMessageBox.warning(panel, "Reload Asset", "Unable to reload this asset definition.")
+        log_warning(
+            "Unable to reload selected asset definition: %s",
+            panel.selected_window.asset_path,
+        )
+        QMessageBox.warning(
+            panel, "Reload Asset", "Unable to reload this asset definition."
+        )
         return
 
     if not panel.selected_window.reload_asset_definition(asset):
-        log_warning("Reload failed for selected asset: %s", panel.selected_window.asset_path)
-        QMessageBox.warning(panel, "Reload Asset", "Reload failed. The running overlay was kept unchanged.")
+        log_warning(
+            "Reload failed for selected asset: %s", panel.selected_window.asset_path
+        )
+        QMessageBox.warning(
+            panel,
+            "Reload Asset",
+            "Reload failed. The running overlay was kept unchanged.",
+        )
         return
 
     panel.load_editor(panel.selected_window)
@@ -611,15 +714,32 @@ def editor_action_changed(panel):
         panel.mark_saved()
 
 
+def editor_monitor_changed(panel, index):
+    if panel.loading_editor or panel.selected_window not in state.WINDOWS:
+        return
+
+    monitor_id = panel.monitor_combo.itemData(index)
+    if monitor_id:
+        panel.selected_window.move_to_monitor(monitor_id)
+    else:
+        panel.selected_window.monitor_id = None
+        persist_runtime_state("overlay_monitor_changed")
+        panel.mark_saved()
+
+
 def browse_action_target(panel):
     action_type = panel.action_type_combo.currentData()
 
     if action_type == ACTION_OPEN_URL:
-        QMessageBox.information(panel, "Action", "Enter an http or https URL in the target field.")
+        QMessageBox.information(
+            panel, "Action", "Enter an http or https URL in the target field."
+        )
         return
 
     if action_type == ACTION_OPEN_FOLDER:
-        path = QFileDialog.getExistingDirectory(panel, "Choose Action Folder", str(BASE_DIR))
+        path = QFileDialog.getExistingDirectory(
+            panel, "Choose Action Folder", str(BASE_DIR)
+        )
     elif action_type == ACTION_LAUNCH_APP:
         path, _ = QFileDialog.getOpenFileName(
             panel,

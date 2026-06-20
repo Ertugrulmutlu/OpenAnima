@@ -32,6 +32,8 @@ OpenAnima is a lightweight Windows desktop app for running local 2D visual asset
 
 Each overlay can be moved, scaled, hidden, locked, made click-through, kept on top, and restored on the next launch. OpenAnima stores its runtime state locally and does not require an online service.
 
+OpenAnima v1.1.0 adds multi-monitor overlay support so GIFs, APNGs, WebM videos, and other desktop overlays can be moved across multiple displays. Monitor selection is available in the main UI and overlays restore safely with fallback placement when display layouts change.
+
 OpenAnima is not only a GIF player. It is a small desktop overlay engine with an asset library, metadata setup workflow, active overlay inspector, diagnostics, recovery tools, and support for multiple 2D asset formats.
 
 The package version is defined in `openanima_app/version.py` and exposed as:
@@ -76,6 +78,8 @@ print(openanima_app.__version__)
 * Optional movement settings with velocity, screen-edge bounce, gravity, and friction.
 * Persistent sessions saved to `config.json`.
 * UI state persistence for control panel visibility, window geometry, and last selected page.
+* Multi-monitor overlay support with cross-display dragging and monitor selection in the main UI.
+* Safer overlay placement and fallback behavior when display layouts change.
 * Overlay state persistence for visibility, actions, movement settings, selected animation, and composite UI runtime values.
 * Safer config loading with schema versioning, atomic writes, and corrupt-config backup.
 * Recovery tools for hidden, locked, click-through, or off-screen overlays.
@@ -301,6 +305,22 @@ pip install -r requirements.txt
 python main.py
 ```
 
+### Run Tests
+
+From the repository root, run:
+
+```bash
+python -m pytest -v
+```
+
+If you use `uv`, the command is:
+
+```bash
+uv run pytest -v
+```
+
+Using `python -m pytest` from the repo root ensures `openanima_app` is importable without needing a separate `src` layout.
+
 ### Settings & Diagnostics
 
 <p align="left">
@@ -320,6 +340,43 @@ python main.py
 <p align="left"><em>Diagnostics shows runtime paths, version info, and recent warnings. Available in packaged builds.</em></p>
 
 ---
+
+## Release Notes
+
+See `CHANGELOG.md` for release history and `RELEASE_NOTES_v1.1.0.md` for details about v1.1.
+
+---
+
+## Troubleshooting
+
+* If OpenAnima fails to launch from source, confirm you are using Python 3.11+ and that `requirements.txt` is installed.
+* If overlays are not visible, check that the desktop is not in a locked or high-DPI scaling mode that hides transparent windows.
+* If WebM playback fails, the issue is often the local Qt Multimedia backend or missing system codecs.
+* If an overlay is off-screen after a monitor change, use the recovery actions on the Settings or Diagnostics page to center overlays and restore visible windows.
+* For Local API errors, confirm the app is bound to `127.0.0.1` and `X-OpenAnima-Token` is included in modifying requests.
+
+---
+
+## Contributing
+
+Contributions are welcome. To get started:
+
+```bash
+pip install -r requirements.txt
+python -m pytest -v
+```
+
+Create issues for bugs or feature requests, and open pull requests for small, focused changes.
+
+* Keep changes targeted to one improvement at a time.
+* Include a short description and motivation in the PR.
+* Update `CHANGELOG.md` when introducing user-visible features or fixes.
+
+---
+
+## License
+
+OpenAnima is released under the MIT License. See [LICENSE](LICENSE).
 
 ## Build EXE
 
