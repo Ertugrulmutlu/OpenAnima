@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OpenAnima — Desktop Overlay Engine</title>
-  <meta name="description" content="OpenAnima is an open-source Windows desktop overlay engine for GIFs, APNG, WebM, sprites, HUD elements, and animated assets." />
+  <title>OpenAnima v1.1 - Desktop Overlay Engine</title>
+  <meta name="description" content="OpenAnima v1.1 is a Windows desktop overlay engine for GIFs, APNGs, WebM videos, sprites, HUD elements, and animated desktop assets." />
   <link rel="icon" href="images/icon.ico" />
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -316,8 +316,16 @@
     .callout { display: flex; flex-direction: column; justify-content: space-between; padding: 32px; border: 1px solid var(--line); border-radius: 34px; background: radial-gradient(circle at top right, rgba(254,161,66,.22), transparent 34%), rgba(255,255,255,.075); }
     .callout h3 { margin-bottom: 18px; font-size: 36px; line-height: 1.04; letter-spacing: -.058em; }
     .callout p { color: var(--muted); line-height: 1.76; }
+    .callout .download-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; justify-content: stretch; margin-top: 18px; }
+    .callout .download-actions .btn { width: 100%; min-width: 0; min-height: 48px; padding: 0 16px; font-size: 15px; white-space: nowrap; }
+    .callout .download-actions .btn.primary { grid-column: 1 / -1; }
     .terminal { margin-top: 28px; padding: 18px; border: 1px solid rgba(255,255,255,.12); border-radius: 22px; background: rgba(0,0,0,.36); color: #e8e2f5; font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; line-height: 1.8; }
     .terminal span { color: var(--orange); }
+
+    .why-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .why-card { min-height: 188px; padding: 22px; border: 1px solid rgba(255,255,255,.14); border-radius: 24px; background: rgba(255,255,255,.07); }
+    .why-card strong { display: block; margin-bottom: 10px; color: var(--cream); font-size: 18px; letter-spacing: -.025em; }
+    .why-card span { display: block; color: var(--muted); font-size: 14px; line-height: 1.6; }
 
     .workflow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .workflow-step { padding: 24px; }
@@ -357,7 +365,7 @@
       .stacked-editor { position: relative; right: auto; bottom: auto; width: min(560px, 94%); margin: -34px auto 0; transform: none !important; }
       .demo-wrap, .download, .split-showcase { grid-template-columns: 1fr; }
       .section-head, .roadmap-head { flex-direction: column; align-items: flex-start; }
-      .feature-grid, .roadmap, .quick-stats, .usecase-grid, .workflow, .format-grid, .shot-row { grid-template-columns: 1fr; }
+      .feature-grid, .roadmap, .quick-stats, .usecase-grid, .workflow, .format-grid, .shot-row, .why-grid { grid-template-columns: 1fr; }
       .download-actions { justify-content: flex-start; }
       .shot-frame, .shot-frame.tall { min-height: auto; }
       .shot-frame img { max-height: none; height: auto; }
@@ -371,6 +379,7 @@
       h1 { font-size: clamp(48px, 15vw, 74px); letter-spacing: -.075em; }
       .lead { font-size: 18px; }
       .hero-actions, .download-actions { width: 100%; }
+      .callout .download-actions { grid-template-columns: 1fr; }
       .hero-actions .btn, .download-actions .btn { flex: 1 1 100%; width: 100%; }
       .app-mockup, .stacked-editor, .video-card, .callout, .download, .card, .usecase-card, .step, .screenshot-card, .split-copy { border-radius: 24px; }
       .app-tabs { padding: 16px 14px 0; overflow-x: auto; scrollbar-width: none; }
@@ -415,24 +424,26 @@
         <a href="#formats">Formats</a>
         <a href="#demo">Demo</a>
         <a href="#workflow">Workflow</a>
-        <a class="btn small" href="https://github.com/Ertugrulmutlu/OpenAnima" target="_blank" rel="noreferrer">GitHub</a>
+        <a class="btn small" href="https://apps.microsoft.com/detail/9n3hp2wxkxlg?hl=en-us&gl=DE&ocid=pdpshare" target="_blank" rel="noreferrer">Get OpenAnima</a>
       </div>
     </nav>
 
     <main id="top">
       <section class="hero">
         <div>
-          <div class="eyebrow"><span class="pulse-dot"></span> Open-source Windows desktop overlay engine</div>
-          <h1>Turn your desktop into a <span class="gradient-text">living canvas.</span></h1>
-          <p class="lead">OpenAnima lets you place GIFs, APNGs, WebM videos, sprites, frame animations, HUD elements, and playful game-style assets directly on your Windows desktop as movable, customizable overlays.</p>
+          <div class="eyebrow"><span class="pulse-dot"></span> OpenAnima v1.1 - multi-monitor desktop overlays</div>
+          <h1>Turn every display into a <span class="gradient-text">living canvas.</span></h1>
+          <p class="lead">OpenAnima v1.1 is a Windows desktop overlay engine for GIFs, APNGs, WebM videos, sprites, frame animations, HUD elements, and animated desktop assets. It is not just a GIF player: it gives you an asset library, overlay inspector, motion controls, recovery tools, and multi-monitor placement for desktop companions, creator visuals, and game-style HUDs.</p>
           <div class="hero-actions">
-            <a class="btn primary" href="#demo">Watch Demo</a>
-            <a class="btn" href="#try-openanima">Get OpenAnima</a>
+            <a class="btn primary" href="https://apps.microsoft.com/detail/9n3hp2wxkxlg?hl=en-us&gl=DE&ocid=pdpshare" target="_blank" rel="noreferrer"><i data-lucide="shopping-bag"></i>Get OpenAnima</a>
+            <a class="btn" href="https://youtu.be/qgJBF40b_L8" target="_blank" rel="noreferrer"><i data-lucide="play-circle"></i>Watch Demo</a>
+            <a class="btn" href="https://github.com/Ertugrulmutlu/OpenAnima/releases" target="_blank" rel="noreferrer"><i data-lucide="download"></i>GitHub Releases</a>
+            <a class="btn" href="https://ertugrulmutlu.itch.io/openanima" target="_blank" rel="noreferrer"><i data-lucide="gamepad-2"></i>itch.io</a>
           </div>
           <div class="quick-stats">
-            <div class="quick-stat"><strong>v1.0</strong><span>stable release candidate</span></div>
-            <div class="quick-stat"><strong>APNG + WebM</strong><span>richer animation formats</span></div>
-            <div class="quick-stat"><strong>Physics</strong><span>movement and bounce controls</span></div>
+            <div class="quick-stat"><strong>v1.1</strong><span>multi-monitor overlay workflow</span></div>
+            <div class="quick-stat"><strong>GIF APNG WebM</strong><span>sprites, HUDs, and animated assets</span></div>
+            <div class="quick-stat"><strong>Local-first</strong><span>assets and state stay on your PC</span></div>
           </div>
         </div>
 
@@ -455,8 +466,8 @@
               <div class="app-row">
                 <div class="app-copy">
                   <h3>Library</h3>
-                  <p>Choose an asset pack, import new assets, review metadata, and add overlays to the desktop.</p>
-                  <p class="path">Assets: ./openanima/assets</p>
+                  <p>Choose an asset pack, import new visuals, review setup, and add overlays to the desktop.</p>
+                  <p class="path">Local asset library</p>
                 </div>
                 <div class="app-row" style="gap:12px;align-items:center">
                   <span style="color:#fff;font-size:14px">Pack</span>
@@ -476,7 +487,7 @@
                   <div class="app-button">Import Pack</div>
                 </div>
                 <div style="display:flex;gap:12px;flex-wrap:wrap">
-                  <div class="app-button">Asset Metadata</div>
+                  <div class="app-button">Asset Setup</div>
                   <div class="app-button">Add to Desktop</div>
                 </div>
               </div>
@@ -490,7 +501,7 @@
             </div>
             <div class="editor-inner">
               <div class="field-title">Selected Overlay</div>
-              <div class="selected-box"><small>Archer_Run</small><small>Type: sprite_strip</small></div>
+              <div class="selected-box"><small>Archer_Run</small><small>Sprite animation</small></div>
               <div class="field-title">Appearance</div>
               <div class="transform-box">
                 <div class="range-row">Scale: 100%<div class="range-track"><span style="width:55%"></span></div></div>
@@ -510,32 +521,48 @@
       <section id="features">
         <div class="section-head">
           <h2>A desktop overlay engine, not just a GIF player.</h2>
-          <p>OpenAnima now combines asset importing, metadata editing, active overlay management, recovery tools, logging, and playful motion controls in one Windows-focused package.</p>
+          <p>OpenAnima combines a reusable asset library, overlay inspector, sprite and animation workflows, safe recovery tools, and playful motion controls in one Windows-focused desktop app.</p>
         </div>
 
         <div class="feature-grid">
-          <article class="card reveal"><div class="icon-pill"><i data-lucide="layers"></i></div><h3>Independent overlays</h3><p>Create movable desktop overlay windows with scale, opacity, speed, visibility, lock, click-through, and always-on-top controls.</p></article>
-          <article class="card reveal"><div class="icon-pill"><i data-lucide="package-plus"></i></div><h3>Asset pack workflow</h3><p>Import single assets, asset folders, folder-based packs, and zip asset packs, then switch between packs from the Library.</p></article>
-          <article class="card reveal"><div class="icon-pill"><i data-lucide="wand-sparkles"></i></div><h3>Smart asset setup</h3><p>The analyzer classifies files before import, explains the detected type, and opens editable metadata setup screens for advanced assets.</p></article>
-          <article class="card reveal"><div class="icon-pill"><i data-lucide="mouse-pointer-click"></i></div><h3>Overlay actions</h3><p>Attach actions to overlays such as opening files, folders, URLs, or launching apps, then trigger them with Ctrl + double click.</p></article>
-          <article class="card reveal"><div class="icon-pill"><i data-lucide="orbit"></i></div><h3>Movement and physics</h3><p>Enable velocity, gravity, friction, and screen-edge bounce to make overlays feel more like desktop toys or tiny game objects.</p></article>
-          <article class="card reveal"><div class="icon-pill"><i data-lucide="shield-check"></i></div><h3>Recovery-first runtime</h3><p>Atomic config writes, safe fallback defaults, missing asset skipping, logs, diagnostics, tray recovery actions, and session reset tools keep the app recoverable.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="layers"></i></div><h3>Independent overlays</h3><p>Place multiple animated assets on the desktop and tune each one with its own scale, opacity, speed, visibility, lock, click-through, and always-on-top controls.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="package-plus"></i></div><h3>Asset pack workflow</h3><p>Import single files, folders, folder packs, or zip packs, then switch between organized collections from the Library.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="wand-sparkles"></i></div><h3>Smart asset setup</h3><p>Review detected asset types and configure sprites, frame folders, videos, or HUD elements before they enter your library.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="mouse-pointer-click"></i></div><h3>Overlay actions</h3><p>Turn overlays into useful desktop objects by attaching actions that open files, folders, links, or apps when triggered.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="orbit"></i></div><h3>Movement and physics</h3><p>Add velocity, gravity, friction, and screen-edge bounce so companions, sprites, and HUD pieces can feel alive.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="monitor"></i></div><h3>Multi-monitor support</h3><p>Move animated overlays across multiple displays and restore them safely when your screen layout changes.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="shield-check"></i></div><h3>Recovery tools</h3><p>Recover hidden, locked, click-through, or off-screen overlays from Settings, Diagnostics, and tray recovery actions.</p></article>
+          <article class="card reveal"><div class="icon-pill"><i data-lucide="hard-drive"></i></div><h3>Local-first desktop app</h3><p>Your assets, packs, and runtime state stay on your Windows machine, built for personal desktop customization.</p></article>
+        </div>
+      </section>
+
+      <section id="why-openanima">
+        <div class="section-head">
+          <h2>Why OpenAnima?</h2>
+          <p>OpenAnima is for people who want more than a looping image on the desktop: it is a small creative layer for animated assets, recoverable customization, and playful workflows.</p>
+        </div>
+        <div class="why-grid">
+          <div class="why-card reveal"><strong>Not just GIFs</strong><span>Use GIFs, APNGs, WebM videos, images, frame folders, sprites, and layered HUD assets.</span></div>
+          <div class="why-card reveal"><strong>Built for play</strong><span>Create desktop companions, creator overlays, HUD experiments, mascots, and ambient visual widgets.</span></div>
+          <div class="why-card reveal"><strong>Local-first</strong><span>Keep imported assets and overlay state on your own machine.</span></div>
+          <div class="why-card reveal"><strong>Multi-monitor ready</strong><span>Place overlays across displays and keep them recoverable when your layout changes.</span></div>
+          <div class="why-card reveal"><strong>Designed to recover</strong><span>Experiment freely with tools for restoring hidden, locked, or misplaced overlays.</span></div>
         </div>
       </section>
 
       <section id="formats">
         <div class="section-head">
-          <h2>More than APNG and WebM.</h2>
+          <h2>More than GIFs.</h2>
           <p>OpenAnima is built around a broad local asset workflow: simple image files, classic GIFs, modern animated formats, game sprites, spritesheets, frame folders, and layered HUD compositions.</p>
         </div>
         <div class="format-grid">
           <div class="format-card"><strong>GIF</strong><span>Classic animated desktop assets with speed and overlay controls.</span></div>
-          <div class="format-card"><strong>APNG</strong><span>Animated PNG playback with fallback behavior when platform support is limited.</span></div>
-          <div class="format-card"><strong>WebM</strong><span>Video overlays through Qt Multimedia, with alpha support depending on backend capabilities.</span></div>
+          <div class="format-card"><strong>APNG</strong><span>Animated PNG assets for crisp motion and transparent desktop effects.</span></div>
+          <div class="format-card"><strong>WebM</strong><span>Video overlays for richer animated assets, creator visuals, and ambient desktop pieces.</span></div>
           <div class="format-card"><strong>Static images</strong><span>PNG, JPG, JPEG, and WEBP files for simple transparent or non-transparent overlays.</span></div>
-          <div class="format-card"><strong>Frame folders</strong><span>Folder-based animations with metadata-driven frame playback.</span></div>
-          <div class="format-card"><strong>Sprite strips</strong><span>Horizontal or vertical sprite strips with FPS, crop, padding, loop, and preview setup.</span></div>
-          <div class="format-card"><strong>Spritesheets</strong><span>Grid or metadata-based spritesheet assets for game-style animations.</span></div>
+          <div class="format-card"><strong>Frame folders</strong><span>Folder-based animations for frame-by-frame characters and effects.</span></div>
+          <div class="format-card"><strong>Sprite strips</strong><span>Horizontal or vertical sprite strips with playback, crop, loop, and preview setup.</span></div>
+          <div class="format-card"><strong>Spritesheets</strong><span>Grid-based spritesheet assets for game-style animations.</span></div>
           <div class="format-card"><strong>Composite UI / HUD</strong><span>Layered UI overlays such as HP bars, mana bars, counters, and status elements.</span></div>
         </div>
       </section>
@@ -543,33 +570,33 @@
       <section id="product-shots">
         <div class="section-head">
           <h2>Interface.</h2>
-          <p>Library, Desktop, Settings, Diagnostics, About, and asset setup screens are now part of the polished control panel flow. Screenshots are shown uncropped so the product UI stays readable.</p>
+          <p>The control panel keeps your library, active overlays, settings, recovery tools, and asset setup screens in one readable Windows desktop flow.</p>
         </div>
         <div class="gallery-grid">
           <article class="screenshot-card reveal">
             <div class="shot-frame tall"><img src="images/anaekrandolu.png" alt="OpenAnima Library with imported assets" /></div>
-            <div class="screenshot-caption"><h3>Asset Library</h3><p>Select packs, import assets, inspect metadata, and add visual assets to your desktop from one screen.</p></div>
+            <div class="screenshot-caption"><h3>Asset Library</h3><p>Import once, reuse anytime. Select packs, browse assets, and send animated visuals to your desktop from one screen.</p></div>
           </article>
 
           <div class="shot-row">
             <article class="screenshot-card reveal">
               <div class="shot-frame"><img src="images/desktopdolu.png" alt="OpenAnima Desktop page with active overlays and inspector" /></div>
-              <div class="screenshot-caption"><h3>Desktop Inspector</h3><p>Manage active overlays, edit appearance, interaction settings, actions, and movement behavior.</p></div>
+              <div class="screenshot-caption"><h3>Desktop Inspector</h3><p>Tune every overlay without touching files: appearance, interactions, actions, motion, and monitor placement.</p></div>
             </article>
             <article class="screenshot-card reveal">
               <div class="shot-frame"><img src="images/settings.png" alt="OpenAnima Settings page" /></div>
-              <div class="screenshot-caption"><h3>Settings and recovery</h3><p>Change the asset folder, enable startup behavior, and recover from broken overlay states.</p></div>
+              <div class="screenshot-caption"><h3>Settings and recovery</h3><p>Recover hidden, locked, click-through, or off-screen overlays safely.</p></div>
             </article>
           </div>
 
           <div class="shot-row">
             <article class="screenshot-card reveal">
               <div class="shot-frame"><img src="images/diagnostic.png" alt="OpenAnima Diagnostics page" /></div>
-              <div class="screenshot-caption"><h3>Diagnostics</h3><p>Review runtime paths, active overlay count, log location, warnings, and recovery information.</p></div>
+              <div class="screenshot-caption"><h3>Diagnostics</h3><p>Check active overlays, spot warnings, and find recovery options when something needs attention.</p></div>
             </article>
             <article class="screenshot-card reveal">
               <div class="shot-frame"><img src="images/assets_setup.png" alt="OpenAnima APNG asset setup page" /></div>
-              <div class="screenshot-caption"><h3>Asset setup</h3><p>Review detected types, manually override metadata, and import the asset with a safer setup flow.</p></div>
+              <div class="screenshot-caption"><h3>Asset setup</h3><p>Review detected types and configure assets before they enter your library.</p></div>
             </article>
           </div>
         </div>
@@ -589,14 +616,19 @@
           </div>
           <aside class="callout">
             <div>
-              <h3>For desktop toys, HUDs, stream visuals, and weird UI experiments.</h3>
-              <p>OpenAnima is a creative layer above your desktop: practical enough for importing and editing assets, playful enough for animated companions and game-style overlays.</p>
+              <h3>Like what you see? Try OpenAnima on Windows.</h3>
+              <p>Use it for desktop companions, game-style HUDs, tutorial markers, ambient indicators, and animated visuals that stay easy to inspect and recover.</p>
             </div>
             <div class="terminal">
-              <div><span>$</span> import asset pack</div>
-              <div><span>$</span> review metadata</div>
-              <div><span>$</span> add to desktop</div>
-              <div><span>$</span> tune scale opacity speed physics</div>
+              <div><span>01</span> Import or choose an asset pack</div>
+              <div><span>02</span> Review asset setup</div>
+              <div><span>03</span> Place overlays on any display</div>
+              <div><span>04</span> Tune motion, actions, and recovery</div>
+            </div>
+            <div class="download-actions">
+              <a class="btn primary" href="https://apps.microsoft.com/detail/9n3hp2wxkxlg?hl=en-us&gl=DE&ocid=pdpshare" target="_blank" rel="noreferrer"><i data-lucide="shopping-bag"></i>Microsoft Store</a>
+              <a class="btn" href="https://github.com/Ertugrulmutlu/OpenAnima/releases" target="_blank" rel="noreferrer"><i data-lucide="download"></i>GitHub Releases</a>
+              <a class="btn" href="https://ertugrulmutlu.itch.io/openanima" target="_blank" rel="noreferrer"><i data-lucide="gamepad-2"></i>itch.io</a>
             </div>
           </aside>
         </div>
@@ -609,9 +641,9 @@
         </div>
         <div class="workflow">
           <article class="workflow-step reveal"><strong>1</strong><h3>Import</h3><p>Add a single file, folder, folder pack, or zip-based asset pack from the Library.</p></article>
-          <article class="workflow-step reveal"><strong>2</strong><h3>Review</h3><p>Use the setup window to confirm the detected type, crop frames, edit layers, or override metadata.</p></article>
-          <article class="workflow-step reveal"><strong>3</strong><h3>Place</h3><p>Add the asset to the desktop and manage it from the Desktop page and Inspector.</p></article>
-          <article class="workflow-step reveal"><strong>4</strong><h3>Recover</h3><p>Use Settings, Diagnostics, logs, tray actions, and safe config recovery when something goes wrong.</p></article>
+          <article class="workflow-step reveal"><strong>2</strong><h3>Review</h3><p>Confirm the detected type, preview frames, tune playback, or prepare layered HUD elements.</p></article>
+          <article class="workflow-step reveal"><strong>3</strong><h3>Place</h3><p>Add the asset to your desktop, choose the right display, and adjust it from the Inspector.</p></article>
+          <article class="workflow-step reveal"><strong>4</strong><h3>Recover</h3><p>Restore control if an overlay becomes hidden, locked, click-through, or off-screen.</p></article>
         </div>
       </section>
 
@@ -619,21 +651,21 @@
         <div class="split-showcase">
           <div class="split-copy">
             <h3>Advanced setup screens for sprites and HUDs.</h3>
-            <p>Sprite strips can be previewed frame by frame with crop, padding, FPS, loop, anchor, and export controls. Composite UI assets get a layered editor with visibility, opacity, value, clipping, zoom, grid, bounds, and nudge tools.</p>
+            <p>Prepare game-style animations and layered HUD elements before they become overlays. Preview frames, tune playback, build bars and counters, and keep each visual easy to reuse.</p>
             <div class="check-list">
-              <div class="check-item"><i data-lucide="check"></i> Sprite strip preview and frame export</div>
-              <div class="check-item"><i data-lucide="check"></i> Composite UI / HUD layer editing</div>
-              <div class="check-item"><i data-lucide="check"></i> Live metadata edits with reload prompts</div>
+              <div class="check-item"><i data-lucide="check"></i> Sprite strip preview and playback tuning</div>
+              <div class="check-item"><i data-lucide="check"></i> Composite HUD layer editing</div>
+              <div class="check-item"><i data-lucide="check"></i> Reusable desktop-ready visual assets</div>
             </div>
           </div>
           <div class="gallery-grid">
             <article class="screenshot-card reveal">
               <div class="shot-frame"><img src="images/sprite_sprit.png" alt="OpenAnima sprite strip asset setup" /></div>
-              <div class="screenshot-caption"><h3>Sprite setup</h3><p>Preview detected frames, tune animation metadata, and export frames when needed.</p></div>
+              <div class="screenshot-caption"><h3>Sprite setup</h3><p>Preview frames, tune playback, and prepare game-style animations.</p></div>
             </article>
             <article class="screenshot-card reveal">
               <div class="shot-frame"><img src="images/composite_builder.png" alt="OpenAnima composite UI builder" /></div>
-              <div class="screenshot-caption"><h3>Composite builder</h3><p>Edit layered HUD assets such as HP bars, mana bars, stamina bars, and other UI pieces.</p></div>
+              <div class="screenshot-caption"><h3>Composite builder</h3><p>Build layered HUD elements like HP, mana, stamina, and status bars.</p></div>
             </article>
           </div>
         </div>
@@ -642,38 +674,41 @@
       <section id="use-cases">
         <div class="section-head">
           <h2>What can you build with OpenAnima?</h2>
-          <p>OpenAnima is not only about putting a GIF on the desktop. It is a small visual layer for playful overlays, desktop toys, creator assets, and weird interface experiments.</p>
+          <p>OpenAnima is a small visual layer for playful overlays, desktop toys, creator assets, and interface experiments that live directly above your normal workspace.</p>
         </div>
 
         <div class="usecase-grid">
-          <article class="usecase-card reveal"><div class="usecase-icon"><i data-lucide="cat"></i></div><h3>Desktop companions</h3><p>Add animated pets, mascots, pixel characters, or small visual toys that live directly on your desktop.</p><span class="example-tag">Example: ghost, cat, robot, mascot</span></article>
-          <article class="usecase-card reveal"><div class="usecase-icon"><i data-lucide="gamepad-2"></i></div><h3>Game-style HUDs</h3><p>Place health bars, counters, status indicators, or ambient UI elements above your normal workspace.</p><span class="example-tag">Example: HP bar, combo counter, status badge</span></article>
-          <article class="usecase-card reveal"><div class="usecase-icon"><i data-lucide="clapperboard"></i></div><h3>Creator visuals</h3><p>Use animated overlays while recording demos, tutorials, project videos, devlogs, or lightweight streams.</p><span class="example-tag">Example: intro overlay, tutorial marker</span></article>
-          <article class="usecase-card reveal"><div class="usecase-icon"><i data-lucide="timer-reset"></i></div><h3>Productivity experiments</h3><p>Prototype small animated widgets like focus timers, break reminders, ambient indicators, or visual notes.</p><span class="example-tag">Example: focus timer, break reminder</span></article>
+          <article class="usecase-card reveal"><div class="usecase-icon"><i data-lucide="sparkles"></i></div><h3>Desktop companions</h3><p>Add animated mascots, pixel characters, and small visual toys that can sit, move, bounce, or idle on your desktop.</p><span class="example-tag">Example: ghost, cat, robot, mascot, pixel character</span></article>
+          <article class="usecase-card reveal"><div class="usecase-icon"><i data-lucide="gamepad-2"></i></div><h3>Game-style HUDs</h3><p>Build overlays that feel pulled from a game interface, then place them beside your work, stream, or play space.</p><span class="example-tag">Example: HP bar, mana bar, stamina bar, combo counter</span></article>
+          <article class="usecase-card reveal"><div class="usecase-icon"><i data-lucide="clapperboard"></i></div><h3>Creator visuals</h3><p>Add reusable visual markers and animated elements to recordings, tutorials, project updates, and devlog footage.</p><span class="example-tag">Example: tutorial markers, recording overlays, devlog visuals</span></article>
+          <article class="usecase-card reveal"><div class="usecase-icon"><i data-lucide="timer-reset"></i></div><h3>Productivity experiments</h3><p>Prototype small desktop widgets that communicate state without taking over your workflow.</p><span class="example-tag">Example: focus timer, break reminder, ambient indicator</span></article>
         </div>
       </section>
 
       <section id="roadmap">
         <div class="roadmap-head">
           <div><h2>Roadmap</h2></div>
-          <p>OpenAnima grows from a reliable 2D desktop overlay engine into a richer asset playground step by step.</p>
+          <p>OpenAnima is growing toward a richer, friendlier desktop asset playground while keeping the core overlay workflow recoverable.</p>
         </div>
 
       <div class="roadmap">
-        <div class="step reveal"><span class="tag">v1.0</span><h3>Reliable 2D overlay engine</h3><p>Library, Desktop, Inspector, Settings, Diagnostics, asset packs, APNG/WebM, config recovery, and PyInstaller packaging.</p></div>
-        <div class="step reveal"><span class="tag">v1.x</span><h3>Polish and distribution</h3><p>Cleaner first-run flow, better examples, issue-driven fixes, more robust asset setup, and release packaging improvements.</p></div>
-        <div class="step reveal"><span class="tag">Future</span><h3>Richer desktop assets</h3><p>More asset types, stronger creator workflows, reusable presets, and experiments with 3D desktop objects.</p></div>
+        <div class="step reveal"><span class="tag">v1.1</span><h3>Multi-monitor overlay support</h3><p>Multi-monitor overlay support, safer placement, and a stronger desktop overlay workflow.</p></div>
+        <div class="step reveal"><span class="tag">Next</span><h3>Friendlier creative setup</h3><p>Better presets, more example assets, improved first-run experience, and creator-focused workflows.</p></div>
+        <div class="step reveal"><span class="tag">Future</span><h3>Richer desktop assets</h3><p>Richer desktop assets, reusable overlay scenes, and possible experiments with 3D desktop objects.</p></div>
       </div>
+      </section>
 
       <section id="try-openanima">
         <div class="download">
           <div>
             <h2>Try OpenAnima today.</h2>
-            <p>Download the latest Windows executable from GitHub Releases, test it on Windows, and share feedback or ideas through issues.</p>
+            <p>Like what you see? Try OpenAnima on Windows from the Microsoft Store, GitHub Releases, or itch.io.</p>
           </div>
 
           <div class="download-actions">
-            <a class="btn primary" href="https://github.com/Ertugrulmutlu/OpenAnima/releases/download/v1.0/OpenAnima.exe" target="_blank" rel="noreferrer"><i data-lucide="download"></i>Download EXE</a>
+            <a class="btn primary" href="https://apps.microsoft.com/detail/9n3hp2wxkxlg?hl=en-us&gl=DE&ocid=pdpshare" target="_blank" rel="noreferrer"><i data-lucide="shopping-bag"></i>Microsoft Store</a>
+            <a class="btn" href="https://github.com/Ertugrulmutlu/OpenAnima/releases" target="_blank" rel="noreferrer"><i data-lucide="download"></i>GitHub Releases</a>
+            <a class="btn" href="https://ertugrulmutlu.itch.io/openanima" target="_blank" rel="noreferrer"><i data-lucide="gamepad-2"></i>itch.io</a>
             <a class="btn" href="https://github.com/Ertugrulmutlu/OpenAnima" target="_blank" rel="noreferrer">
               <svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.866-.014-1.7-2.782.604-3.369-1.342-3.369-1.342-.455-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.004.07 1.532 1.031 1.532 1.031.892 1.529 2.341 1.088 2.91.832.091-.646.35-1.087.636-1.337-2.221-.253-4.555-1.111-4.555-4.944 0-1.092.39-1.986 1.03-2.685-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.025A9.564 9.564 0 0 1 12 5.829c.85.004 1.705.115 2.504.337 1.909-1.295 2.747-1.025 2.747-1.025.546 1.378.203 2.397.1 2.65.64.699 1.028 1.593 1.028 2.685 0 3.842-2.337 4.687-4.566 4.936.359.309.678.919.678 1.852 0 1.337-.012 2.415-.012 2.744 0 .268.18.579.688.481C19.138 20.166 22 16.418 22 12c0-5.523-4.477-10-10-10Z" /></svg>
               GitHub
