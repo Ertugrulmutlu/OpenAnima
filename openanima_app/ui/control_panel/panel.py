@@ -26,7 +26,14 @@ from ...runtime.logging import log_info, log_warning, recent_warnings_and_errors
 from ...runtime.paths import APP_DATA_DIR, CONFIG_PATH, LOG_DIR, LOG_PATH
 from ...runtime.session import persist_runtime_state, save_ui_state
 from ...version import __version__
-from . import desktop_page, editor_page, import_workflows, library_page, local_api_page, overlay_cards
+from . import (
+    desktop_page,
+    editor_page,
+    import_workflows,
+    library_page,
+    local_api_page,
+    overlay_cards,
+)
 from .about_page import build_about_page as build_about_page_widget
 from .diagnostics_page import build_diagnostics_page
 from .settings_page import build_settings_page as build_settings_page_widget
@@ -72,12 +79,16 @@ class FlowLayout(QLayout):
         for item in self.items:
             size = size.expandedTo(item.minimumSize())
         margins = self.contentsMargins()
-        size += QSize(margins.left() + margins.right(), margins.top() + margins.bottom())
+        size += QSize(
+            margins.left() + margins.right(), margins.top() + margins.bottom()
+        )
         return size
 
     def do_layout(self, rect, test_only=False):
         margins = self.contentsMargins()
-        effective = rect.adjusted(margins.left(), margins.top(), -margins.right(), -margins.bottom())
+        effective = rect.adjusted(
+            margins.left(), margins.top(), -margins.right(), -margins.bottom()
+        )
         x = effective.x()
         y = effective.y()
         line_height = 0
@@ -187,11 +198,20 @@ class ControlPanel(QWidget):
         title.setObjectName("AppTitle")
         layout.addWidget(title)
 
-        for name in ("Library", "Desktop", "Settings", "Local API", "Diagnostics", "About"):
+        for name in (
+            "Library",
+            "Desktop",
+            "Settings",
+            "Local API",
+            "Diagnostics",
+            "About",
+        ):
             button = QPushButton(name)
             button.setObjectName("NavButton")
             button.setCheckable(True)
-            button.clicked.connect(lambda checked=False, page=name: self.select_page(page))
+            button.clicked.connect(
+                lambda checked=False, page=name: self.select_page(page)
+            )
             self.nav_buttons[name] = button
             layout.addWidget(button)
 
@@ -232,7 +252,9 @@ class ControlPanel(QWidget):
     def restore_ui_state(self, ui):
         self._restoring_ui_state = True
         try:
-            geometry = ui.get("control_panel_geometry") if isinstance(ui, dict) else None
+            geometry = (
+                ui.get("control_panel_geometry") if isinstance(ui, dict) else None
+            )
             if isinstance(geometry, dict):
                 self.setGeometry(
                     QRect(
@@ -318,8 +340,10 @@ class ControlPanel(QWidget):
 
     def build_library_tab(self):
         return library_page.build_library_tab(self)
+
     def build_active_tab(self):
         return desktop_page.build_active_tab(self)
+
     def build_settings_page(self):
         build_settings_page_widget(self)
 
@@ -374,10 +398,13 @@ class ControlPanel(QWidget):
 
     def build_editor_tab(self):
         return editor_page.build_editor_tab(self)
+
     def slider_row(self, value_label, slider):
         return editor_page.slider_row(self, value_label, slider)
+
     def movement_spin(self, minimum, maximum, step):
         return editor_page.movement_spin(self, minimum, maximum, step)
+
     def show_editor_tab(self):
         self.select_page("Desktop")
 
@@ -386,10 +413,14 @@ class ControlPanel(QWidget):
 
     def active_pack_dir(self):
         return library_page.active_pack_dir(self)
+
     def refresh_packs(self):
         return library_page.refresh_packs(self)
+
     def change_asset_root(self):
-        path = QFileDialog.getExistingDirectory(self, "Change Assets Folder", str(state.ASSETS_DIR))
+        path = QFileDialog.getExistingDirectory(
+            self, "Change Assets Folder", str(state.ASSETS_DIR)
+        )
         if not path:
             return
 
@@ -400,32 +431,46 @@ class ControlPanel(QWidget):
 
     def refresh_library(self):
         return library_page.refresh_library(self)
+
     def refresh_active(self):
         return desktop_page.refresh_active(self)
+
     def refresh_local_api_page(self):
         return local_api_page.refresh_local_api_page(self)
+
     def local_api_enabled_changed(self, checked):
         return local_api_page.local_api_enabled_changed(self, checked)
+
     def regenerate_local_api_token(self):
         return local_api_page.regenerate_local_api_token(self)
+
     def copy_local_api_token(self):
         return local_api_page.copy_local_api_token(self)
+
     def copy_local_api_url(self):
         return local_api_page.copy_local_api_url(self)
+
     def test_local_api_status(self):
         return local_api_page.test_local_api_status(self)
+
     def open_local_api_docs(self):
         return local_api_page.open_local_api_docs(self)
+
     def overlay_card(self, window):
         return overlay_cards.overlay_card(self, window)
+
     def overlay_badges(self, window):
         return overlay_cards.overlay_badges(self, window)
+
     def toggle_overlay_visible(self, window):
         return desktop_page.toggle_overlay_visible(self, window)
+
     def run_overlay_action(self, window):
         return desktop_page.run_overlay_action(self, window)
+
     def close_window(self, window):
         return desktop_page.close_window(self, window)
+
     def refresh_diagnostics(self):
         if not hasattr(self, "diagnostics_recent"):
             return
@@ -442,11 +487,15 @@ class ControlPanel(QWidget):
             lines = [f"{item['level']}: {item['message']}" for item in recent[-30:]]
             self.diagnostics_recent.setPlainText("\n".join(lines))
         else:
-            self.diagnostics_recent.setPlainText("No warnings or errors recorded this session.")
+            self.diagnostics_recent.setPlainText(
+                "No warnings or errors recorded this session."
+            )
 
     def diagnostics_text(self):
         recent = recent_warnings_and_errors()
-        warnings = "\n".join(f"- {item['level']}: {item['message']}" for item in recent[-30:])
+        warnings = "\n".join(
+            f"- {item['level']}: {item['message']}" for item in recent[-30:]
+        )
         if not warnings:
             warnings = "- None recorded this session."
         return "\n".join(
@@ -476,8 +525,10 @@ class ControlPanel(QWidget):
 
     def window_from_current_item(self):
         return desktop_page.window_from_current_item(self)
+
     def library_path_from_current_item(self):
         return library_page.library_path_from_current_item(self)
+
     def open_library_menu(self, pos):
         item = self.library_list.itemAt(pos)
         if item is None or not item.data(Qt.UserRole):
@@ -520,16 +571,22 @@ class ControlPanel(QWidget):
 
     def import_asset(self):
         return import_workflows.import_asset(self)
+
     def import_folder(self):
         return import_workflows.import_folder(self)
+
     def import_pack(self):
         return import_workflows.import_pack(self)
+
     def import_asset_pack_path(self, path):
         return import_workflows.import_asset_pack_path(self, path)
+
     def import_analyzed_path(self, path, add_to_desktop=False):
         return import_workflows.import_analyzed_path(self, path, add_to_desktop)
+
     def import_dropped_paths(self, paths):
         return import_workflows.import_dropped_paths(self, paths)
+
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -537,7 +594,11 @@ class ControlPanel(QWidget):
         super().dragEnterEvent(event)
 
     def dropEvent(self, event):
-        paths = [Path(url.toLocalFile()) for url in event.mimeData().urls() if url.isLocalFile()]
+        paths = [
+            Path(url.toLocalFile())
+            for url in event.mimeData().urls()
+            if url.isLocalFile()
+        ]
         if paths:
             self.import_dropped_paths(paths)
             event.acceptProposedAction()
@@ -545,7 +606,10 @@ class ControlPanel(QWidget):
         super().dropEvent(event)
 
     def create_import_from_setup(self, path, metadata, asset_name):
-        return import_workflows.create_import_from_setup(self, path, metadata, asset_name)
+        return import_workflows.create_import_from_setup(
+            self, path, metadata, asset_name
+        )
+
     def select_imported_library_item(self, imported):
         imported = Path(imported).resolve()
         for index in range(self.library_list.count()):
@@ -557,18 +621,25 @@ class ControlPanel(QWidget):
 
     def configure_selected_library_asset(self):
         return import_workflows.configure_selected_library_asset(self)
+
     def configure_active_asset(self):
         return import_workflows.configure_active_asset(self)
+
     def configure_selected_overlay_asset(self):
         return import_workflows.configure_selected_overlay_asset(self)
+
     def configure_asset_path(self, path):
         return import_workflows.configure_asset_path(self, path)
+
     def save_asset_metadata(self, path, metadata, asset_name):
         return import_workflows.save_asset_metadata(self, path, metadata, asset_name)
+
     def offer_reload_running_overlays(self, asset_path):
         return import_workflows.offer_reload_running_overlays(self, asset_path)
+
     def add_selected_library_asset(self):
         return library_page.add_selected_library_asset(self)
+
     def hide_all_overlays(self):
         recovery.hide_all_overlays()
         self.refresh_active()
@@ -597,7 +668,9 @@ class ControlPanel(QWidget):
         if not state.WINDOWS:
             state.PRESERVED_WINDOW_CONFIGS = []
             persist_runtime_state("clear_saved_session", [], force_empty=True)
-            log_info("Recovery action: clear saved session requested with no active overlays")
+            log_info(
+                "Recovery action: clear saved session requested with no active overlays"
+            )
             self.refresh_active()
             return
 
@@ -619,66 +692,105 @@ class ControlPanel(QWidget):
 
     def select_window(self, window):
         return desktop_page.select_window(self, window)
+
     def active_selection_changed(self):
         return desktop_page.active_selection_changed(self)
+
     def select_active(self):
         return desktop_page.select_active(self)
+
     def close_active(self):
         return desktop_page.close_active(self)
+
     def toggle_active_lock(self):
         return desktop_page.toggle_active_lock(self)
+
     def toggle_selected_lock(self):
         return desktop_page.toggle_selected_lock(self)
+
     def focus_selected_overlay(self):
         return desktop_page.focus_selected_overlay(self)
+
     def remove_selected_overlay(self):
         return desktop_page.remove_selected_overlay(self)
+
     def clear_overlay_selection(self):
         return desktop_page.clear_overlay_selection(self)
+
     def set_editor_signals_blocked(self, blocked):
         return editor_page.set_editor_signals_blocked(self, blocked)
+
     def load_editor(self, window):
         return editor_page.load_editor(self, window)
+
     def rebuild_runtime_editor(self, window):
         return editor_page.rebuild_runtime_editor(self, window)
+
     def clear_layout(self, layout):
         return editor_page.clear_layout(self, layout)
+
     def display_layer_name(self, name):
         return editor_page.display_layer_name(self, name)
+
     def mark_saved(self):
         return editor_page.mark_saved(self)
+
     def editor_layer_value_changed(self, layer_name, slider_value, label, display_name):
-        return editor_page.editor_layer_value_changed(self, layer_name, slider_value, label, display_name)
+        return editor_page.editor_layer_value_changed(
+            self, layer_name, slider_value, label, display_name
+        )
+
     def editor_animation_changed(self, animation_name):
         return editor_page.editor_animation_changed(self, animation_name)
+
     def reload_selected_asset(self):
         return editor_page.reload_selected_asset(self)
+
     def editor_scale_changed(self, value):
         return editor_page.editor_scale_changed(self, value)
+
     def editor_opacity_changed(self, value):
         return editor_page.editor_opacity_changed(self, value)
+
     def editor_speed_changed(self, value):
         return editor_page.editor_speed_changed(self, value)
+
     def editor_top_changed(self, checked):
         return editor_page.editor_top_changed(self, checked)
+
     def editor_click_changed(self, checked):
         return editor_page.editor_click_changed(self, checked)
+
     def editor_visibility_changed(self, checked):
         return editor_page.editor_visibility_changed(self, checked)
+
     def editor_lock_changed(self, checked):
         return editor_page.editor_lock_changed(self, checked)
+
     def current_action_config(self):
         return editor_page.current_action_config(self)
+
     def editor_action_changed(self):
         return editor_page.editor_action_changed(self)
+
+    def editor_monitor_changed(self, index):
+        return editor_page.editor_monitor_changed(self, index)
+
+    def refresh_monitor_combo(self, window=None):
+        return editor_page.refresh_monitor_combo(self, window)
+
     def browse_action_target(self):
         return editor_page.browse_action_target(self)
+
     def test_selected_action(self):
         return editor_page.test_selected_action(self)
+
     def current_movement_config(self):
         return editor_page.current_movement_config(self)
+
     def editor_movement_changed(self):
         return editor_page.editor_movement_changed(self)
+
     def closeEvent(self, event):
         self.clear_overlay_selection()
         if state.EXITING:

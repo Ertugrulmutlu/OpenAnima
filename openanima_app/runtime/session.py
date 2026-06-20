@@ -15,7 +15,11 @@ from .config import (
     window_config_visible,
 )
 from .logging import log_info
-from .overlay_ids import generate_persistent_id, is_valid_persistent_id, normalize_api_alias
+from .overlay_ids import (
+    generate_persistent_id,
+    is_valid_persistent_id,
+    normalize_api_alias,
+)
 from .paths import CONFIG_PATH
 from .action_runner import normalized_action_config
 from ..assets.paths import stored_path
@@ -29,7 +33,9 @@ def _config_int(config, key, default):
         return default
 
 
-def apply_window_config(overlay, config, restore_geometry=True, restore_visibility=False):
+def apply_window_config(
+    overlay, config, restore_geometry=True, restore_visibility=False
+):
     config = config if isinstance(config, dict) else {}
     overlay._saved_window_config = dict(config)
     persistent_id = config.get("persistent_id")
@@ -50,11 +56,16 @@ def apply_window_config(overlay, config, restore_geometry=True, restore_visibili
     layer_values = config.get("layer_values")
     overlay.layer_values = dict(layer_values) if isinstance(layer_values, dict) else {}
     current_animation = config.get("current_animation")
-    overlay.current_animation = current_animation if isinstance(current_animation, str) else None
+    overlay.current_animation = (
+        current_animation if isinstance(current_animation, str) else None
+    )
     overlay.action = normalized_action_config(config.get("action"))
     overlay.movement = normalized_movement_config(config.get("movement"))
     overlay.runtime_velocity_x = float(overlay.movement.get("velocity_x", 0.0))
     overlay.runtime_velocity_y = float(overlay.movement.get("velocity_y", 0.0))
+    overlay.monitor_id = (
+        config.get("monitor_id") if isinstance(config.get("monitor_id"), str) else None
+    )
 
     if hasattr(overlay, "apply_window_flags"):
         overlay.apply_window_flags()
@@ -68,7 +79,11 @@ def apply_window_config(overlay, config, restore_geometry=True, restore_visibili
     if restore_geometry and hasattr(overlay, "move"):
         x = _config_int(config, "x", 100)
         y = _config_int(config, "y", 100)
-        pos = overlay.restored_position(QPoint(x, y)) if hasattr(overlay, "restored_position") else QPoint(x, y)
+        pos = (
+            overlay.restored_position(QPoint(x, y))
+            if hasattr(overlay, "restored_position")
+            else QPoint(x, y)
+        )
         overlay.move(pos)
 
     if restore_geometry and hasattr(overlay, "update_movement_timer"):
@@ -84,7 +99,9 @@ def apply_window_config(overlay, config, restore_geometry=True, restore_visibili
 def serialize_overlay_window(overlay):
     data = dict(getattr(overlay, "_saved_window_config", {}) or {})
     pos = overlay.pos()
-    intended_visible = bool(getattr(overlay, "intended_visible", window_config_visible(data, default=True)))
+    intended_visible = bool(
+        getattr(overlay, "intended_visible", window_config_visible(data, default=True))
+    )
     data.update(
         {
             "path": stored_path(overlay.asset_path),
@@ -105,6 +122,7 @@ def serialize_overlay_window(overlay):
             "intended_visible": intended_visible,
             "action": normalized_action_config(overlay.action),
             "movement": normalized_movement_config(overlay.movement),
+            "monitor_id": getattr(overlay, "monitor_id", None),
         }
     )
 
@@ -139,8 +157,12 @@ def current_ui_config(visible=None):
     if panel is None:
         return ui
 
-    ui["control_panel_visible"] = panel.isVisible() if visible is None else bool(visible)
-    geometry = panel.normalGeometry() if hasattr(panel, "normalGeometry") else panel.geometry()
+    ui["control_panel_visible"] = (
+        panel.isVisible() if visible is None else bool(visible)
+    )
+    geometry = (
+        panel.normalGeometry() if hasattr(panel, "normalGeometry") else panel.geometry()
+    )
     if geometry.isValid() and geometry.width() > 0 and geometry.height() > 0:
         ui["control_panel_geometry"] = {
             "x": geometry.x(),
@@ -187,7 +209,9 @@ def build_session_config(windows=None, force_empty=False, ui=None):
     return data
 
 
-def persist_runtime_state(reason, windows=None, force_empty=False, ui=None, force=False):
+def persist_runtime_state(
+    reason, windows=None, force_empty=False, ui=None, force=False
+):
     if state.RESTORING_SESSION and not force:
         log_info("Session save skipped during restore: %s", reason)
         return False
@@ -202,7 +226,9 @@ def persist_runtime_state(reason, windows=None, force_empty=False, ui=None, forc
     return True
 
 
-def save_config(windows=None, force_empty=False, ui=None, reason="legacy_save_config", force=False):
+def save_config(
+    windows=None, force_empty=False, ui=None, reason="legacy_save_config", force=False
+):
     return persist_runtime_state(
         reason,
         windows=windows,

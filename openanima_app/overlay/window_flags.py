@@ -50,6 +50,21 @@ def available_geometry():
     return screen.availableGeometry() if screen else None
 
 
+def virtual_desktop_geometry():
+    screens = QApplication.screens()
+    if not screens:
+        return None
+
+    geometry = QRect()
+    for screen in screens:
+        geometry = (
+            geometry.united(screen.geometry())
+            if geometry.isValid()
+            else screen.geometry()
+        )
+    return geometry
+
+
 def visible_screen_geometry():
     screens = QApplication.screens()
     if not screens:
@@ -57,12 +72,66 @@ def visible_screen_geometry():
 
     geometry = QRect()
     for screen in screens:
-        geometry = geometry.united(screen.availableGeometry()) if geometry.isValid() else screen.availableGeometry()
+        geometry = (
+            geometry.united(screen.availableGeometry())
+            if geometry.isValid()
+            else screen.availableGeometry()
+        )
     return geometry
 
 
+def screen_identifier(screen):
+    screens = QApplication.screens()
+    for index, current in enumerate(screens, start=1):
+        if current is screen:
+            name = current.name() if hasattr(current, "name") else ""
+            return name if name else f"openanima-monitor-{index}"
+    return None
+
+
+def screen_by_id(screen_id):
+    if not isinstance(screen_id, str) or not screen_id:
+        return None
+
+    screens = QApplication.screens()
+    for index, screen in enumerate(screens, start=1):
+        identifier = screen.name() if hasattr(screen, "name") else ""
+        if not identifier:
+            identifier = f"openanima-monitor-{index}"
+        if screen_id == identifier:
+            return screen
+
+    return None
+
+
+def screen_for_window(window):
+    if hasattr(QApplication, "screenAt") and hasattr(window, "frameGeometry"):
+        screen = QApplication.screenAt(window.frameGeometry().topLeft())
+    else:
+        screen = window.screen() if hasattr(window, "screen") else None
+
+    return screen or QApplication.primaryScreen()
+
+
+def center_on_screen(window, screen):
+    if screen is None:
+        screen = QApplication.primaryScreen()
+    if screen is None:
+        return QPoint(100, 100)
+
+    geometry = screen.availableGeometry()
+    return QPoint(
+        geometry.left() + max(0, (geometry.width() - max(1, window.width())) // 2),
+        geometry.top() + max(0, (geometry.height() - max(1, window.height())) // 2),
+    )
+
+
 def centered_on_primary_screen(window):
-    geometry = window.available_geometry() if hasattr(window, "available_geometry") else available_geometry()
+    geometry = (
+        window.available_geometry()
+        if hasattr(window, "available_geometry")
+        else available_geometry()
+    )
     if geometry is None:
         return QPoint(100, 100)
 
@@ -73,7 +142,11 @@ def centered_on_primary_screen(window):
 
 
 def restored_position(window, pos):
-    visible_geometry = window.visible_screen_geometry() if hasattr(window, "visible_screen_geometry") else visible_screen_geometry()
+    visible_geometry = (
+        window.visible_screen_geometry()
+        if hasattr(window, "visible_screen_geometry")
+        else visible_screen_geometry()
+    )
     if visible_geometry is None:
         return pos
 
@@ -85,7 +158,11 @@ def restored_position(window, pos):
 
 
 def clamped_position(window, pos):
-    geometry = window.available_geometry() if hasattr(window, "available_geometry") else available_geometry()
+    geometry = (
+        window.visible_screen_geometry()
+        if hasattr(window, "visible_screen_geometry")
+        else visible_screen_geometry()
+    )
     if geometry is None:
         return pos
 
