@@ -23,8 +23,11 @@ def _validate_sprite_strip(folder: Path, metadata: dict) -> list[str]:
     errors = []
     image_path = _image_path(folder, metadata)
     pixmap = _pixmap(image_path)
-    if image_path is None or not image_path.exists():
-        errors.append("Sprite strip image file is missing.")
+    if image_path is None:
+        errors.append("Sprite strip metadata is missing 'image'. Select an image filename for this field.")
+        return errors
+    if not image_path.exists():
+        errors.append(f"Sprite strip image file is missing: {image_path.name}. Select an existing image filename.")
         return errors
     if pixmap.isNull():
         errors.append("Sprite strip image file is not readable.")
@@ -88,8 +91,11 @@ def _validate_spritesheet(folder: Path, metadata: dict) -> list[str]:
     errors = []
     image_path = _image_path(folder, metadata)
     pixmap = _pixmap(image_path)
-    if image_path is None or not image_path.exists():
-        errors.append("Spritesheet image file is missing.")
+    if image_path is None:
+        errors.append("Spritesheet metadata is missing 'image'. Select an image filename for this field.")
+        return errors
+    if not image_path.exists():
+        errors.append(f"Spritesheet image file is missing: {image_path.name}. Select an existing image filename.")
         return errors
     if pixmap.isNull():
         errors.append("Spritesheet image file is not readable.")
@@ -98,7 +104,8 @@ def _validate_spritesheet(folder: Path, metadata: dict) -> list[str]:
     frame_width = _int(metadata.get("frame_width"), 0)
     frame_height = _int(metadata.get("frame_height"), 0)
     if frame_width <= 0 or frame_height <= 0:
-        errors.append("Spritesheet frame_width and frame_height must be greater than zero.")
+        fields = ", ".join(name for name, value in (("frame_width", frame_width), ("frame_height", frame_height)) if value <= 0)
+        errors.append(f"Spritesheet metadata has missing or invalid fields: {fields}. Set these pixel dimensions to values greater than zero.")
 
     animations = metadata.get("animations")
     if not isinstance(animations, dict) or not animations:
