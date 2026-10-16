@@ -349,10 +349,18 @@ See `CHANGELOG.md` for release history and `RELEASE_NOTES_v1.1.0.md` for details
 
 ## Troubleshooting
 
+### Keyboard shortcuts and controls
+
+Drag an unlocked overlay to move it; right-click opens its menu. **Ctrl + left
+double-click** runs its configured action. Asset Setup's composite editor has
+separate layer shortcuts (arrows, undo/redo, duplicate and preview zoom).
+See the [controls reference](docs/CONTROLS.md) for exact keys, focus requirements
+and recovery actions for hidden, locked or click-through overlays.
+
 * If OpenAnima fails to launch from source, confirm you are using Python 3.11+ and that `requirements.txt` is installed.
 * If overlays are not visible, check that the desktop is not in a locked or high-DPI scaling mode that hides transparent windows.
 * If WebM playback fails, the issue is often the local Qt Multimedia backend or missing system codecs.
-* If an overlay is off-screen after a monitor change, use the recovery actions on the Settings or Diagnostics page to center overlays and restore visible windows.
+* If an overlay is off-screen after a monitor change, use Settings → Recovery or the system tray to center overlays and restore visible windows; Diagnostics provides paths and logs.
 * For Local API errors, confirm the app is bound to `127.0.0.1` and `X-OpenAnima-Token` is included in modifying requests.
 
 ---
